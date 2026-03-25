@@ -1,170 +1,155 @@
-import 'package:flutter/material.dart';
+ 3. РЕНДЕР ТУРИЗМА (С ПРОВЕРКОЙ КАРТИНОК)
+        function renderTourism() {
+            const list = document.getElementById('tourism-list');
+            const defaultT = [
+                {url: "https://v-abkhazia.ru", title: "Водопад Святой"},
+                {url: "https://goru.travel", title: "Город-призрак Акармара"},
+                {url: "https://sputnik-abkhazia.info", title: "Ткуарчальский Мост"}
+            ];
+            const tourismData = JSON.parse(localStorage.getItem('tk_tourism') || JSON.stringify(defaultT));
+            list.innerHTML = tourismData.slice().reverse().map(t => `
+                <div class="bg-white rounded-[45px] shadow-sm border border-gray-100 overflow-hidden img-card">
+                    <img src="${t.url}" class="w-full h-64 object-cover" onerror="this.src='https://via.placeholder.com'">
+                    <div class="p-8">
+                        <h3 class="font-black text-gray-800 text-xl italic uppercase tracking-tight">${t.title}</h3>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-void main() => runApp(const SmartTkuarchalApp());
+        // 4. РЕНДЕР НОВОСТЕЙ
+        function renderNews() {
+            const feed = document.getElementById('vertical-feed');
+            const lastTitle = document.getElementById('last-news-title');
+            const newsData = JSON.parse(localStorage.getItem('tk_news_list') || '[]');
+            if (newsData.length === 0) {
+                lastTitle.innerText = "Пока новостей нет. Загляни позже!";
+                feed.innerHTML = `<div class="text-center py-20 text-gray-300 font-black uppercase text-[10px] tracking-[0.4em]">Лента пуста</div>`;
+                return;
+            }
+            lastTitle.innerText = newsData[newsData.length - 1].text.substring(0, 55) + '...';
+            feed.innerHTML = newsData.slice().reverse().map(item => `
+                <div class="bg-white p-8 rounded-[45px] shadow-sm border border-gray-100 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black uppercase text-indigo-500 bg-indigo-50 px-4 py-2 rounded-full tracking-widest">${item.date}</span>
+                        <div class="flex gap-4 text-gray-200 text-xl">❤️ 🗨️</div>
+                    </div>
+                    <p class="text-gray-800 text-lg leading-relaxed font-bold italic tracking-tight">${item.text}</p>
+                </div>
+            `).join('');
+        }
 
-class SmartTkuarchalApp extends StatelessWidget {
-  const SmartTkuarchalApp({super.key});
+        // 5. РЕНДЕР СПОРТА
+        function renderSports() {
+            const list = document.getElementById('sports-list');
+            const defaultS = [{name:"Батал Гаджия", sport:"Борьба"}, {name:"Арсен Логуа", sport:"Бокс"}];
+            const sportsData = JSON.parse(localStorage.getItem('tk_sports') || JSON.stringify(defaultS));
+            list.innerHTML = sportsData.map(s => `
+                <div class="bg-white p-7 rounded-[45px] shadow-sm border border-gray-100 flex items-center gap-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-50 to-white rounded-3xl flex items-center justify-center text-4xl shadow-inner border-2 border-indigo-100">🏅</div>
+                    <div>
+                        <h3 class="font-black text-gray-800 text-xl leading-none mb-2 italic uppercase tracking-tighter">${s.name}</h3>
+                        <p class="text-indigo-500 text-[11px] font-black uppercase tracking-[0.2em]">${s.sport}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        fontFamily: 'Roboto',
-      ),
-      home: const MainNavigation(),
-    );
-  }
-}
+        // 6. АДМИНКА (ЛОГИКА СОХРАНЕНИЯ)
+        function saveAdminNews() {
+            const txt = document.getElementById('news-edit').value.trim();
+            if(txt) {
+                let list = JSON.parse(localStorage.getItem('tk_news_list') || '[]');
+                list.push({ text: txt, date: new Date().toLocaleDateString('ru-RU'), id: Date.now() });
+                localStorage.setItem('tk_news_list', JSON.stringify(list));
+                document.getElementById('news-edit').value = '';
+                renderNews(); closeAdmin(); showPage('feed');
+            }
+        }
+        function addTourismPhoto() {
+            const url = document.getElementById('t-url').value.trim();
+            const title = document.getElementById('t-title').value.trim();
+            if(url && title) {
+                let list = JSON.parse(localStorage.getItem('tk_tourism') || '[]');
+                list.push({url, title});
+                localStorage.setItem('tk_tourism', JSON.stringify(list));
+                document.getElementById('t-url').value = ''; document.getElementById('t-title').value = '';
+                renderTourism(); closeAdmin(); showPage('tourism');
+            }
+        }
+        function addSportsman() {
+            const name = document.getElementById('s-name').value.trim();
+            const sport = document.getElementById('s-sport').value.trim();
+            if(name && sport) {
+                let list = JSON.parse(localStorage.getItem('tk_sports') || '[]');
+                list.push({name, sport});
+                localStorage.setItem('tk_sports', JSON.stringify(list));
+                document.getElementById('s-name').value = ''; document.getElementById('s-sport').value = '';
+                renderSports(); closeAdmin(); showPage('sports');
+            }
+        }
 
-// Модель для данных атлетов (её не было в твоем коде)
-class Athlete {
-  final String name;
-  final String sport;
-  final String age;
-  final List<String> achievements;
-  bool isLiked;
+        // 7. МОДАЛКИ (ТАКСИ / ТРАНСПОРТ / ИДЕИ)
+        function openModal(type) {
+            const body = document.getElementById('modal-body');
+            if(type === 'taxi') {
+                document.getElementById('modal-title').innerText = 'ВЫЗОВ ТАКСИ 🚕';
+                body.innerHTML = `
+                    <div class="space-y-4">
+                        <a href="tel:+79407260260" class="flex justify-between items-center p-7 bg-yellow-50 rounded-[35px] border border-yellow-200 active:scale-95 transition shadow-sm">
+                            <span class="font-black text-yellow-900 text-xl tracking-tighter uppercase">+7 940 726-02-60</span>
+                            <span class="text-3xl">📞</span>
+                        </a>
+                        <a href="tel:+79409260260" class="flex justify-between items-center p-7 bg-yellow-50 rounded-[35px] border border-yellow-200 active:scale-95 transition shadow-sm">
+                            <span class="font-black text-yellow-900 text-xl tracking-tighter uppercase">+7 940 926-02-60</span>
+                            <span class="text-3xl">📞</span>
+                        </a>
+                    </div>`;
+            }
+            if(type === 'transport') {
+                document.getElementById('modal-title').innerText = 'РЕЙСЫ 🚌';
+                body.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="p-7 bg-blue-50 rounded-[35px] border border-blue-100">
+                            <b class="text-blue-900 block text-lg uppercase font-black tracking-tight italic">Сухум — 300 ₽</b>
+                            <p class="text-xs text-blue-600 font-bold mt-2">08:00, 09:30, 11:30, 14:00, 16:30</p>
+                        </div>
+                        <div class="p-7 bg-indigo-50 rounded-[35px] border border-indigo-100">
+                            <b class="text-indigo-900 block text-lg uppercase font-black tracking-tight italic">Псоу — 650 ₽</b>
+                            <p class="text-xs text-indigo-600 font-bold mt-2">ЕЖЕДНЕВНО В 07:15</p>
+                        </div>
+                    </div>`;
+            }
+            if(type === 'ideas') {
+                document.getElementById('modal-title').innerText = 'ТВОЯ ИДЕЯ 💡';
+                body.innerHTML = `
+                    <textarea id="idea-text" class="w-full p-7 bg-gray-50 rounded-[40px] border-none outline-none font-bold text-sm text-gray-700 mb-4" rows="4" placeholder="Что нужно Ткуарчалу?"></textarea>
+                    <button onclick="alert('Идея отправлена! Спасибо за участие.');closeModal()" class="w-full bg-indigo-600 text-white p-6 rounded-[30px] font-black uppercase text-xs tracking-[0.2em] active:scale-95 transition shadow-lg">ОТПРАВИТЬ ИДЕЮ</button>`;
+            }
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            setTimeout(() => document.getElementById('modal-box').classList.add('modal-show'), 10);
+        }
 
-  Athlete({
-    required this.name,
-    required this.sport,
-    required this.age,
-    required this.achievements,
-    this.isLiked = false,
-  });
-}
+        function closeModal() {
+            document.getElementById('modal-box').classList.remove('modal-show');
+            setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 300);
+        }
 
-class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+        // 8. ЛОГИКА ПРОФИЛЯ
+        function login() {
+            const name = document.getElementById('name-in').value.trim();
+            if(name) { localStorage.setItem('tk_user', name); initApp(); showPage('home'); }
+        }
+        function logout() { localStorage.clear(); location.reload(); }
+        function openAdmin() { document.getElementById('admin-modal').classList.remove('hidden'); }
+        function closeAdmin() { document.getElementById('admin-modal').classList.add('hidden'); }
 
-  @override
-  State<MainNavigation> createState() => _MainNavigationState();
-}
-
-class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
-  bool isAdmin = false;
-
-  // Список атлетов для "Доски почета"
-  final List<Athlete> athletes = [
-    Athlete(
-      name: "Даур Аркания",
-      sport: "Бокс",
-      age: "22 года",
-      achievements: ["Чемпион Абхазии 2025", "МС"],
-    ),
-  ];
-
-  void _showLoginAdmin() {
-    TextEditingController controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Вход для создателя"),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: "Введите секретный код"),
-          obscureText: true,
-        ),
-        actions:,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      _buildHome(),
-      _buildSports(),
-      _buildNews(),
-      _buildSchedule(),
-      _buildProfile(),
-    ];
-
-    return Scaffold(
-      body: pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        selectedItemColor: const Color(0xFFF5C59D),
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Главная"),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: "Спорт"),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: "Новости"),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: "Рейсы"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Профиль"),
-        ],
-      ),
-    );
-  }
-
-  // --- Экраны ---
-
-  Widget _buildHome() {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Smart Tkuarchal")),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children:,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSports() {
-    return Scaffold(
-      appBar: AppBar(title: const Text("ДОСКА ПОЧЕТА")),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.8,
-        ),
-        itemCount: athletes.length,
-        itemBuilder: (context, index) {
-          final athlete = athletes[index];
-          return Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children:,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildNews() => Scaffold(appBar: AppBar(title: const Text("Лента Ткуарчала")));
-  Widget _buildSchedule() => Scaffold(appBar: AppBar(title: const Text("Рейсы 2026")));
-  Widget _buildProfile() {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Мой Профиль")),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: _showLoginAdmin,
-          child: Text(isAdmin ? "Вы администратор" : "Вход для создателя"),
-        ),
-      ),
-    );
-  }
-}
-
-class _StoryItem extends StatelessWidget {
-  final String title;
-  const _StoryItem({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        children:,
-      ),
-    );
-  }
-}
+        function initApp() {
+            const user = localStorage.getItem('tk_user');
+            renderNews(); renderSports(); renderTourism();
+            if(user) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('user-box').classList.remove('hidden');
+                document.getElementById('u-name').innerText = user;
+                document.getElementById('header-user').innerText = user;
+                if(user.toLowerCase() === 'admin') document.getElementById('admin-btn').classList
