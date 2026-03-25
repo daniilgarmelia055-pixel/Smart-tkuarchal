@@ -1,111 +1,193 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Tkuarchal</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4f46e5">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Убираем выделение текста при нажатии на мобильных */
-        body { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-tap-highlight-color: transparent; font-family: ui-sans-serif, system-ui; }
         .page { display: none; }
         .page.active { display: block; }
-        .nav-active { color: #4f46e5; transform: scale(1.1); }
+        .modal-show { transform: translateY(0) !important; opacity: 1 !important; }
     </style>
 </head>
-<body class="bg-gray-50 font-sans pb-24 select-none">
+<body class="bg-gray-50 pb-24 select-none">
 
-    <!-- Header -->
+    <!-- HEADER -->
     <div class="bg-indigo-700 p-6 pb-10 text-white flex justify-between items-center rounded-b-[40px] shadow-lg mb-6">
         <div>
-            <h1 class="text-2xl font-bold">Smart Tkuarchal</h1>
-            <p class="text-indigo-200 text-sm">Твой город в кармане</p>
+            <h1 id="header-user" class="text-2xl font-bold">Smart Tkuarchal</h1>
+            <p class="text-indigo-200 text-sm">Город в твоем кармане</p>
         </div>
-        <button onclick="alert('Уведомлений пока нет')" class="bg-indigo-600 p-3 rounded-2xl shadow-inner active:scale-90 transition">
-            🔔
-        </button>
+        <div class="flex gap-2">
+            <!-- Кнопка админа (скрыта) -->
+            <button id="admin-btn" onclick="openAdmin()" class="hidden bg-yellow-400 p-3 rounded-2xl shadow-lg active:scale-90 transition">⚙️</button>
+            <button onclick="openNotif()" class="relative bg-indigo-600 p-3 rounded-2xl active:scale-90 transition">
+                🔔 <span id="notif-dot" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+        </div>
     </div>
 
-    <!-- Страница: ГЛАВНАЯ -->
+    <!-- ГЛАВНАЯ -->
     <main id="home" class="page active px-6 space-y-6">
-        <!-- Погода -->
+        <!-- ГЛАВНАЯ НОВОСТЬ ОТ АДМИНА -->
+        <div class="bg-indigo-600 p-6 rounded-[32px] text-white shadow-xl">
+            <p class="text-[10px] uppercase font-bold opacity-60 mb-1">Важное сегодня</p>
+            <h2 id="live-news" class="text-lg font-medium">Добро пожаловать в Ткуарчал!</h2>
+        </div>
+
+        <!-- ЖИВАЯ ПОГОДА -->
         <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center">
-            <div>
-                <p class="text-gray-400 text-xs uppercase font-bold tracking-wider">Погода в Ткуарчале</p>
-                <h2 class="text-3xl font-bold text-gray-800">+22°C</h2>
-                <p class="text-gray-500 text-sm">Солнечно, легкий бриз</p>
+            <div id="w-loading" class="animate-pulse w-full h-12 bg-gray-100 rounded-xl"></div>
+            <div id="w-content" class="hidden flex justify-between w-full items-center">
+                <div>
+                    <p class="text-gray-400 text-[10px] font-bold uppercase">Ткуарчал</p>
+                    <h2 id="temp" class="text-3xl font-black text-gray-800">--°C</h2>
+                    <p id="desc" class="text-gray-500 text-sm">Обновление...</p>
+                </div>
+                <div id="icon" class="text-4xl">☀️</div>
             </div>
-            <div class="text-4xl">☀️</div>
         </div>
 
-        <!-- Сетка кнопок -->
+        <!-- СЕТКА СЕРВИСОВ -->
         <div class="grid grid-cols-2 gap-4">
-            <div onclick="alert('Расписание автобусов загружается...')" class="bg-indigo-50 p-6 rounded-3xl text-center border border-indigo-100 active:scale-95 transition cursor-pointer">
-                <div class="text-4xl mb-2">🚌</div>
-                <span class="text-indigo-900 font-bold text-sm">Транспорт</span>
+            <div onclick="openModal('transport')" class="bg-blue-50 p-6 rounded-3xl text-center active:scale-95 transition">
+                <div class="text-3xl mb-1">🚌</div>
+                <span class="text-blue-900 font-bold text-xs uppercase">Транспорт</span>
             </div>
-            <div onclick="alert('Маршруты к водопадам скоро появятся')" class="bg-emerald-50 p-6 rounded-3xl text-center border border-emerald-100 active:scale-95 transition cursor-pointer">
-                <div class="text-4xl mb-2">🏔️</div>
-                <span class="text-emerald-900 font-bold text-sm">Туризм</span>
-            </div>
-            <div onclick="alert('Справочник ЖКХ')" class="bg-orange-50 p-6 rounded-3xl text-center border border-orange-100 active:scale-95 transition cursor-pointer">
-                <div class="text-4xl mb-2">🛠️</div>
-                <span class="text-orange-900 font-bold text-sm">Услуги</span>
-            </div>
-            <div onclick="alert('Новости города')" class="bg-blue-50 p-6 rounded-3xl text-center border border-blue-100 active:scale-95 transition cursor-pointer">
-                <div class="text-4xl mb-2">📰</div>
-                <span class="text-blue-900 font-bold text-sm">Новости</span>
+            <div onclick="alert('Скоро добавим достопримечательности!')" class="bg-emerald-50 p-6 rounded-3xl text-center active:scale-95 transition">
+                <div class="text-3xl mb-1">🏔️</div>
+                <span class="text-emerald-900 font-bold text-xs uppercase">Туризм</span>
             </div>
         </div>
     </main>
 
-    <!-- Страница: СОБЫТИЯ (скрыта по умолчанию) -->
-    <main id="events" class="page px-6 text-center pt-10">
-        <h2 class="text-xl font-bold text-gray-800">Предстоящие события</h2>
-        <p class="text-gray-500 mt-2">В городе пока всё спокойно.</p>
+    <!-- ПРОФИЛЬ -->
+    <main id="profile" class="page px-6 pt-10 text-center">
+        <div id="login-box" class="bg-white p-8 rounded-[40px] shadow-sm">
+            <div class="text-5xl mb-4">👋</div>
+            <h2 class="text-xl font-bold mb-4">Представьтесь</h2>
+            <input type="text" id="name-in" placeholder="Ваше имя" class="w-full p-4 bg-gray-50 rounded-2xl border-none mb-4 focus:ring-2 focus:ring-indigo-500">
+            <button onclick="login()" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold">Войти</button>
+            <p class="mt-4 text-[10px] text-gray-400 uppercase tracking-widest">Админ: Admin</p>
+        </div>
+        <div id="user-box" class="hidden">
+            <div class="w-24 h-24 bg-indigo-100 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">👤</div>
+            <h2 id="u-name" class="text-2xl font-bold">Гость</h2>
+            <button onclick="logout()" class="mt-8 text-red-400 font-bold">ВЫЙТИ</button>
+        </div>
     </main>
 
-    <!-- Страница: ПРОФИЛЬ (скрыта по умолчанию) -->
-    <main id="profile" class="page px-6 text-center pt-10">
-        <div class="w-24 h-24 bg-indigo-100 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">👤</div>
-        <h2 class="text-xl font-bold text-gray-800">Гость</h2>
-        <button class="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-xl">Войти</button>
-    </main>
+    <!-- МОДАЛКИ -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm transition-all flex items-end">
+        <div id="modal-box" class="bg-white w-full rounded-t-[40px] p-8 translate-y-full transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-title" class="text-xl font-bold">Информация</h3>
+                <button onclick="closeModal()" class="text-2xl">✕</button>
+            </div>
+            <div id="modal-body" class="space-y-4"></div>
+        </div>
+    </div>
 
-    <!-- Нижняя навигация -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 px-10 py-4 flex justify-between items-center rounded-t-[32px] shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-        <button onclick="showPage('home', this)" class="nav-btn nav-active flex flex-col items-center transition duration-300">
-            <span class="text-2xl">🏠</span>
-            <span class="text-[10px] font-bold">Главная</span>
-        </button>
-        <button onclick="showPage('events', this)" class="nav-btn text-gray-400 flex flex-col items-center transition duration-300">
-            <span class="text-2xl">📅</span>
-            <span class="text-[10px] font-bold">События</span>
-        </button>
-        <button onclick="showPage('profile', this)" class="nav-btn text-gray-400 flex flex-col items-center transition duration-300">
-            <span class="text-2xl">👤</span>
-            <span class="text-[10px] font-bold">Профиль</span>
-        </button>
+    <!-- АДМИН ПАНЕЛЬ -->
+    <div id="admin-modal" class="fixed inset-0 bg-indigo-900/90 z-[60] hidden flex items-center p-6">
+        <div class="bg-white w-full rounded-[32px] p-6">
+            <h2 class="text-xl font-bold mb-4">Пульт управления</h2>
+            <textarea id="news-edit" class="w-full p-4 bg-gray-100 rounded-xl mb-4" rows="3" placeholder="Текст новости..."></textarea>
+            <button onclick="saveAdminNews()" class="w-full bg-green-500 text-white p-4 rounded-xl font-bold">ОБНОВИТЬ У ВСЕХ</button>
+            <button onclick="closeAdmin()" class="w-full mt-2 text-gray-400 py-2">Отмена</button>
+        </div>
+    </div>
+
+    <!-- МЕНЮ -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white/80 backdrop-blur-lg border-t flex justify-around p-4 rounded-t-3xl shadow-2xl">
+        <button onclick="showPage('home')" class="text-2xl">🏠</button>
+        <button onclick="showPage('profile')" class="text-2xl">👤</button>
     </nav>
 
     <script>
-        function showPage(pageId, btn) {
-            // Скрываем все страницы
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            // Показываем нужную
-            document.getElementById(pageId).classList.add('active');
-            
-            // Сбрасываем стиль всех кнопок навигации
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active', 'text-indigo-600'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-gray-400'));
-            
-            // Активная кнопка
-            btn.classList.add('nav-active');
-            btn.classList.remove('text-gray-400');
+        // 1. Погода
+        async function loadWeather() {
+            try {
+                const res = await fetch('https://api.open-meteo.com');
+                const data = await res.json();
+                document.getElementById('w-loading').classList.add('hidden');
+                document.getElementById('w-content').classList.remove('hidden');
+                document.getElementById('temp').innerText = Math.round(data.current_weather.temperature) + '°C';
+                document.getElementById('desc').innerText = "В Ткуарчале отлично";
+            } catch(e) { console.error("Погода не загрузилась"); }
         }
-    </script>
 
+        // 2. Навигация и Модалки
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function openModal(type) {
+            const body = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const box = document.getElementById('modal-box');
+            
+            if(type === 'transport') {
+                document.getElementById('modal-title').innerText = 'Расписание 🚌';
+                body.innerHTML = `<div class="p-4 bg-gray-50 rounded-2xl flex justify-between"><b>Ткуарчал - Сухум</b><span>08:00</span></div>
+                                  <div class="p-4 bg-gray-50 rounded-2xl flex justify-between"><b>Ткуарчал - Очамчыра</b><span>12:00</span></div>`;
+            }
+            overlay.classList.remove('hidden');
+            setTimeout(() => box.classList.add('modal-show'), 10);
+        }
+
+        function closeModal() {
+            document.getElementById('modal-box').classList.remove('modal-show');
+            setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 300);
+        }
+
+        // 3. Логика Профиля и Админа
+        function login() {
+            const name = document.getElementById('name-in').value;
+            if(name) {
+                localStorage.setItem('tk_user', name);
+                initApp();
+                showPage('home');
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        function initApp() {
+            const user = localStorage.getItem('tk_user');
+            const news = localStorage.getItem('tk_news') || "Добро пожаловать в Ткуарчал!";
+            document.getElementById('live-news').innerText = news;
+
+            if(user) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('user-box').classList.remove('hidden');
+                document.getElementById('u-name').innerText = user;
+                document.getElementById('header-user').innerText = 'Привет, ' + user;
+                if(user.toLowerCase() === 'admin') document.getElementById('admin-btn').classList.remove('hidden');
+            }
+        }
+
+        function openAdmin() { document.getElementById('admin-modal').classList.remove('hidden'); }
+        function closeAdmin() { document.getElementById('admin-modal').classList.add('hidden'); }
+
+        function saveAdminNews() {
+            const txt = document.getElementById('news-edit').value;
+            if(txt) {
+                localStorage.setItem('tk_news', txt); // Сохраняем "в облако" (имитация)
+                document.getElementById('live-news').innerText = txt;
+                alert("Опубликовано!");
+                closeAdmin();
+            }
+        }
+
+        window.onload = () => { initApp(); loadWeather(); };
+    </script>
 </body>
 </html>
+           
