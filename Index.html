@@ -2,249 +2,299 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Tkuarchal</title>
-    
-    <!-- Firebase SDK (для работы общей базы данных) -->
-    <script src="https://www.gstatic.com"></script>
-    <script src="https://www.gstatic.com"></script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --main-blue: #1a237e; --accent-blue: #3f51b5; --bg-gray: #f0f2f5; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-gray); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
-        
-        /* Шапка */
-        .header { background: linear-gradient(135deg, var(--accent-blue), var(--main-blue)); color: white; padding: 25px 20px; border-radius: 0 0 30px 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .header h1 { margin: 0; font-size: 1.6em; letter-spacing: 1px; cursor: pointer; }
-        
-        /* Истории (Stories) */
-        .stories-bar { display: flex; gap: 15px; padding: 15px; overflow-x: auto; background: white; margin-bottom: 10px; border-bottom: 1px solid #ddd; scrollbar-width: none; }
-        .stories-bar::-webkit-scrollbar { display: none; }
-        .story-node { min-width: 70px; height: 70px; border-radius: 50%; border: 3px solid #ff8501; padding: 2px; }
-        .story-node img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-
-        /* Сетка меню */
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; }
-        .menu-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s; }
-        .menu-card:active { transform: scale(0.95); }
-        .menu-card img { width: 45px; margin-bottom: 10px; }
-        .menu-card span { font-weight: bold; color: #333; display: block; font-size: 0.9em; }
-
-        /* Разделы контента */
-        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Карточки (Спорт / Туризм / Идеи) */
-        .item-card { background: white; border-radius: 20px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .item-img { width: 100%; height: 200px; background-size: cover; background-position: center; }
-        .item-content { padding: 15px; }
-        .item-title { font-weight: bold; font-size: 1.2em; color: var(--main-blue); margin: 0; }
-        .item-info { font-size: 0.9em; color: #666; margin: 10px 0; line-height: 1.4; }
-        .call-btn { display: block; text-align: center; background: #4caf50; color: white; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: bold; }
-
-        /* Регистрация */
-        #reg-screen { position: fixed; inset: 0; background: white; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
-        .input-box { width: 100%; padding: 15px; border: 2px solid var(--accent-blue); border-radius: 15px; margin: 20px 0; font-size: 1.1em; outline: none; }
-
-        /* Админка Сторис */
-        #admin-modal { position: fixed; top: 15%; left: 5%; width: 90%; background: white; padding: 25px; border-radius: 25px; box-shadow: 0 0 40px rgba(0,0,0,0.4); z-index: 5000; display: none; box-sizing: border-box; }
-
-        .footer-nav { position: fixed; bottom: 20px; left: 20px; right: 20px; background: var(--main-blue); color: white; padding: 15px; text-align: center; border-radius: 20px; font-weight: bold; cursor: pointer; display: none; }
+        body { -webkit-tap-highlight-color: transparent; font-family: ui-sans-serif, system-ui; background-color: #f9fafb; overflow-x: hidden; }
+        .page { display: none; min-height: 100vh; }
+        .page.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-show { transform: translateY(0) !important; opacity: 1 !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .story-ring { padding: 3px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+        @keyframes progress { from { width: 0%; } to { width: 100%; } }
+        .animate-progress { animation: progress 5s linear forwards; }
     </style>
 </head>
-<body>
+<body class="pb-32">
 
-    <!-- РЕГИСТРАЦИЯ -->
-    <div id="reg-screen">
-        <h2 style="color: var(--main-blue)">Smart Tkuarchal</h2>
-        <p>Добро пожаловать в городское приложение! Введите ваше имя:</p>
-        <input type="text" id="reg-name" class="input-box" placeholder="Ваше имя...">
-        <button onclick="completeReg()" style="width:100%; padding:15px; background: #4caf50; color:white; border:none; border-radius:15px; font-weight:bold; font-size:1em;">НАЧАТЬ</button>
-    </div>
-
-    <!-- ГЛАВНЫЙ ЭКРАН -->
-    <div id="main-ui" class="section active">
-        <div class="header">
-            <h1 id="logo" onclick="tapLogo()">Smart Tkuarchal</h1>
-            <p id="user-greeting" style="font-size: 0.85em; opacity: 0.9; margin-top: 5px;">Привет, житель!</p>
+    <!-- HEADER -->
+    <div class="bg-indigo-700 p-6 pb-8 text-white flex justify-between items-center rounded-b-[45px] shadow-xl fixed top-0 inset-x-0 z-40 border-b border-indigo-500/20">
+        <div onclick="showPage('home')">
+            <h1 id="header-user" class="text-2xl font-black tracking-tight italic cursor-pointer">Smart Tkuarchal</h1>
+            <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest opacity-70">Город в твоем кармане</p>
         </div>
-
-        <!-- Полоса Историй -->
-        <div class="stories-bar" id="stories-list">
-            <!-- Сюда добавляются истории -->
-        </div>
-
-        <div class="grid">
-            <div class="menu-card" onclick="showSection('tourism-section')">
-                <img src="https://img.icons8.com">
-                <span>ТУРИЗМ</span>
-            </div>
-            <div class="menu-card" onclick="showSection('sport-section')">
-                <img src="https://img.icons8.com">
-                <span>СПОРТ</span>
-            </div>
-            <div class="menu-card" onclick="showSection('ideas-section')">
-                <img src="https://img.icons8.com">
-                <span>ИДЕИ ГОРОДА</span>
-            </div>
-            <div class="menu-card" onclick="alert('Раздел в разработке')">
-                <img src="https://img.icons8.com">
-                <span>ТАКСИ</span>
-            </div>
+        <div class="flex gap-2">
+            <button id="admin-btn" onclick="openAdmin()" class="hidden bg-yellow-400 p-3 rounded-2xl shadow-lg active:rotate-12 transition">⚙️</button>
+            <div onclick="showPage('profile')" class="bg-indigo-600/50 p-3 rounded-2xl backdrop-blur-md text-xl active:scale-90 transition">👤</div>
         </div>
     </div>
 
-    <!-- ТУРИЗМ -->
-    <div id="tourism-section" class="section">
-        <h2 style="color: var(--main-blue)">🏔 Путеводитель</h2>
-        <div class="item-card">
-            <div class="item-img" style="background-image: url('https://images.unsplash.com');"></div>
-            <div class="item-content">
-                <p class="item-title">Акармарские Водопады</p>
-                <p class="item-info">Потрясающее место для отдыха. Описание и маршрут скоро...</p>
-                <a href="tel:+79400000000" class="call-btn">📞 ПОЗВОНИТЬ ГИДУ</a>
+    <!-- MAIN PAGES -->
+    <main id="home" class="page active px-6 pt-32 space-y-6">
+        <!-- STORIES -->
+        <div class="flex gap-4 overflow-x-auto no-scrollbar py-2">
+            <div id="add-story-btn" onclick="addStory()" class="hidden min-w-[70px] flex flex-col items-center gap-1">
+                <div class="w-16 h-16 rounded-full border-2 border-dashed border-indigo-300 flex items-center justify-center text-2xl text-indigo-400 bg-white">+</div>
+                <span class="text-[8px] font-black text-indigo-500 uppercase italic">Создать</span>
             </div>
+            <div id="stories-list" class="flex gap-4"></div>
+        </div>
+
+        <!-- NEWS CARD -->
+        <div onclick="showPage('feed')" class="bg-gradient-to-br from-indigo-600 to-blue-500 p-7 rounded-[40px] text-white shadow-lg active:scale-95 transition relative overflow-hidden">
+            <p class="text-[10px] uppercase font-bold opacity-60 mb-1">События города</p>
+            <h2 id="last-news-title" class="text-lg font-bold leading-tight italic">Загрузка последних известий...</h2>
+        </div>
+
+        <!-- WEATHER -->
+        <div class="bg-white p-6 rounded-[40px] shadow-sm border border-gray-100 flex justify-between items-center">
+            <div><p class="text-gray-400 text-[10px] font-bold uppercase mb-1">Погода Ткуарчал</p><div class="flex items-end gap-2"><h2 id="temp" class="text-4xl font-black text-gray-800">--°C</h2><span class="text-gray-400 text-sm mb-1 italic">Ясно</span></div></div>
+            <div class="text-5xl">☀️</div>
+        </div>
+
+        <!-- SERVICES -->
+        <div class="grid grid-cols-2 gap-4">
+            <div onclick="showPage('tourism')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition"><div class="text-3xl mb-2">🏔️</div><span class="text-gray-800 font-black text-[11px] uppercase italic">Туризм</span></div>
+            <div onclick="openModal('taxi')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition"><div class="text-3xl mb-2">🚕</div><span class="text-gray-800 font-black text-[11px] uppercase italic">Такси</span></div>
+            <div onclick="openModal('transport')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition"><div class="text-3xl mb-2">🚌</div><span class="text-gray-800 font-black text-[11px] uppercase italic">Рейсы</span></div>
+            <div onclick="showPage('sports')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition"><div class="text-3xl mb-2">🏆</div><span class="text-gray-800 font-black text-[11px] uppercase italic">Спорт</span></div>
+        </div>
+        
+        <button onclick="showPage('ideas-page')" class="w-full py-5 bg-indigo-50 text-indigo-600 rounded-[35px] font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition">💡 СТЕНА ИДЕЙ ГОРОДА</button>
+    </main>
+
+    <!-- FEED PAGE -->
+    <main id="feed" class="page px-6 pt-32 pb-10 space-y-6"><h2 class="text-2xl font-black text-gray-800 mb-2 italic uppercase">Лента</h2><div id="vertical-feed" class="space-y-6"></div></main>
+
+    <!-- IDEAS PAGE -->
+    <main id="ideas-page" class="page px-6 pt-32 pb-10 space-y-6">
+        <div class="flex justify-between items-center"><h2 class="text-2xl font-black text-gray-800 italic uppercase">Идеи</h2><button onclick="openModal('ideas')" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-black text-[10px] uppercase shadow-lg">+ Предложить</button></div>
+        <div id="ideas-list" class="space-y-4"></div>
+    </main>
+
+    <!-- TOURISM PAGE -->
+    <main id="tourism" class="page px-6 pt-32 pb-10 space-y-6"><h2 class="text-2xl font-black text-gray-800 mb-2 italic uppercase">Локации</h2><div id="tourism-list" class="space-y-6"></div></main>
+
+    <!-- SPORTS PAGE -->
+    <main id="sports" class="page px-6 pt-32 pb-10 space-y-8">
+        <div class="flex gap-4 border-b border-gray-100 pb-2 overflow-x-auto no-scrollbar">
+            <button onclick="toggleSportTab('hall')" id="tab-hall" class="text-indigo-600 font-black uppercase text-[10px] tracking-widest pb-2 border-b-2 border-indigo-600">Сборы 🏀</button>
+            <button onclick="toggleSportTab('champions')" id="tab-champs" class="text-gray-400 font-black uppercase text-[10px] tracking-widest pb-2">Чемпионы 🏆</button>
+        </div>
+        <div id="sport-active" class="space-y-6">
+            <button onclick="openModal('create-sport')" class="w-full p-5 bg-indigo-600 text-white rounded-[30px] font-black uppercase text-[10px] shadow-lg">+ Создать сбор</button>
+            <div id="active-events" class="space-y-6"></div>
+        </div>
+        <div id="sport-champions" class="hidden space-y-4"><div id="sports-list" class="space-y-4"></div></div>
+    </main>
+    
+    <!-- PROFILE PAGE -->
+    <main id="profile" class="page px-6 pt-40 text-center">
+        <div id="login-box" class="bg-white p-10 rounded-[45px] shadow-sm border border-gray-100">
+            <h2 class="text-2xl font-black mb-6 text-gray-800 italic uppercase">Вход</h2>
+            <input type="text" id="name-in" placeholder="Твое имя" class="w-full p-5 bg-gray-50 rounded-[25px] border-none mb-6 text-center font-black text-lg outline-none">
+            <button onclick="login()" class="w-full bg-indigo-600 text-white p-5 rounded-[25px] font-black shadow-lg uppercase">Войти</button>
+        </div>
+        <div id="user-box" class="hidden">
+            <div class="w-28 h-28 bg-white rounded-full mx-auto mb-6 flex items-center justify-center text-5xl shadow-xl border-4 border-indigo-50">👤</div>
+            <h2 id="u-name" class="text-3xl font-black text-gray-800 italic">Гость</h2>
+            <button onclick="logout()" class="mt-12 text-red-500 font-bold uppercase text-[10px] tracking-[0.3em]">Выйти</button>
+        </div>
+    </main>
+
+    <!-- MODAL -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-end">
+        <div id="modal-box" class="w-full bg-white rounded-t-[50px] p-8 pb-12 transition-all transform translate-y-full max-h-[90vh] overflow-y-auto no-scrollbar">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" onclick="closeModal()"></div>
+            <h2 id="modal-title" class="text-xl font-black mb-6 text-center italic uppercase text-gray-800"></h2>
+            <div id="modal-body"></div>
         </div>
     </div>
 
-    <!-- СПОРТ -->
-    <div id="sport-section" class="section">
-        <h2 style="color: var(--main-blue)">🏆 Стена Славы</h2>
-        <div class="item-card">
-            <div class="item-img" style="background-image: url('https://images.unsplash.com');"></div>
-            <div class="item-content">
-                <p class="item-title">Ахмет Ибрагимов</p>
-                <p class="item-info">Вольная борьба. Чемпион Ткуарчала 2024. Рост: 180см, Вес: 75кг.</p>
-            </div>
+    <!-- ADMIN PANEL -->
+    <div id="admin-modal" class="hidden fixed inset-0 bg-indigo-950/95 backdrop-blur-xl z- p-8 overflow-y-auto">
+        <div class="flex justify-between items-center mb-10"><h2 class="text-white text-2xl font-black italic uppercase">Admin</h2><button onclick="closeAdmin()" class="text-white text-5xl font-light">&times;</button></div>
+        <div class="space-y-4">
+            <button onclick="addNewsPrompt()" class="w-full bg-indigo-500 text-white p-6 rounded-[30px] font-black uppercase text-[10px] shadow-lg">➕ Новость</button>
+            <button onclick="addTourismPrompt()" class="w-full bg-emerald-500 text-white p-6 rounded-[30px] font-black uppercase text-[10px] shadow-lg">➕ Туризм</button>
+            <button onclick="addSportsmanPrompt()" class="w-full bg-amber-500 text-white p-6 rounded-[30px] font-black uppercase text-[10px] shadow-lg">➕ Чемпион</button>
+            <button onclick="addStory()" class="w-full bg-rose-500 text-white p-6 rounded-[30px] font-black uppercase text-[10px] shadow-lg">➕ История</button>
         </div>
     </div>
-
-    <!-- СТЕНА ИДЕЙ -->
-    <div id="ideas-section" class="section">
-        <h2 style="color: var(--main-blue)">💡 Стена идей</h2>
-        <textarea id="idea-text" class="input-box" style="margin-top:0" placeholder="Что улучшить в городе?"></textarea>
-        <button onclick="sendIdea()" style="width:100%; padding:15px; background: var(--accent-blue); color:white; border:none; border-radius:15px; font-weight:bold;">ОПУБЛИКОВАТЬ</button>
-        <div id="ideas-wall" style="margin-top:20px;"></div>
-    </div>
-
-    <!-- АДМИНКА ДЛЯ СТОРИС -->
-    <div id="admin-modal">
-        <h3>Добавить Историю</h3>
-        <p style="font-size: 0.8em; color: #666;">Выберите фото из галереи:</p>
-        <input type="file" id="story-file" accept="image/*">
-        <input type="text" id="story-desc" class="input-box" placeholder="Короткая подпись...">
-        <button onclick="uploadStory()" style="width:100%; padding:15px; background:#4caf50; color:white; border:none; border-radius:15px; font-weight:bold;">ОПУБЛИКОВАТЬ НА 24Ч</button>
-        <button onclick="closeAdmin()" style="width:100%; margin-top:10px; background:none; border:none; color:red;">Закрыть</button>
-    </div>
-
-    <div class="footer-nav" id="back-btn" onclick="showSection('main-ui')">⬅ НАЗАД В МЕНЮ</div>
 
     <script>
-        // --- КОНФИГУРАЦИЯ FIREBASE (Вставь свои данные здесь) ---
-        const firebaseConfig = {
-            apiKey: "ТВОЙ_КЛЮЧ",
-            databaseURL: "ТВОЯ_ССЫЛКА_DB",
-            projectId: "ТВОЙ_ID",
-            appId: "ТВОЙ_APP_ID"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // --- CORE LOGIC ---
+        const isAdmin = () => localStorage.getItem('tk_user')?.toLowerCase() === 'admin';
+        let tempBase64 = "";
 
-        // --- ЛОГИКА ПРОФИЛЯ ---
-        window.onload = function() {
-            const name = localStorage.getItem('tku_user');
-            if (!name) {
-                document.getElementById('reg-screen').style.display = 'flex';
-            } else {
-                document.getElementById('user-greeting').innerText = "Привет, " + name + "!";
-                syncStories();
-                syncIdeas();
-            }
-        };
+        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+        function openModalDirectly() { document.getElementById('modal-overlay').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-box').classList.add('modal-show'), 10); }
+        function closeModal() { document.getElementById('modal-box').classList.remove('modal-show'); setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 300); }
 
-        function completeReg() {
-            const name = document.getElementById('reg-name').value;
-            if (name.length < 2) return alert("Введите имя");
-            localStorage.setItem('tku_user', name);
-            location.reload();
-        }
-
-        // --- НАВИГАЦИЯ ---
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('back-btn').style.display = (id === 'main-ui') ? 'none' : 'block';
-        }
-
-        // --- СТЕНА ИДЕЙ ---
-        function sendIdea() {
-            const text = document.getElementById('idea-text').value;
-            const name = localStorage.getItem('tku_user');
-            if (!text) return;
-            db.ref('ideas').push({ author: name, text: text, date: Date.now() });
-            document.getElementById('idea-text').value = "";
-        }
-
-        function syncIdeas() {
-            db.ref('ideas').on('value', (snap) => {
-                const wall = document.getElementById('ideas-wall');
-                wall.innerHTML = "";
-                snap.forEach(child => {
-                    const val = child.val();
-                    const card = `<div class="item-card" style="padding:15px; border-left:5px solid var(--accent-blue);">
-                        <small style="color:var(--accent-blue); font-weight:bold;">👤 ${val.author}</small>
-                        <p style="margin:5px 0 0;">${val.text}</p>
-                    </div>`;
-                    wall.innerHTML = card + wall.innerHTML;
-                });
-            });
-        }
-
-        // --- СТОРИС (Админ-вход: 3 клика по лого) ---
-        let taps = 0;
-        function tapLogo() {
-            taps++;
-            if (taps === 3) { document.getElementById('admin-modal').style.display = 'block'; taps = 0; }
-        }
-        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
-
-        function uploadStory() {
-            const file = document.getElementById('story-file').files[0];
-            const desc = document.getElementById('story-desc').value;
-            if (!file) return alert("Выбери фото!");
-
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('preview-img');
             const reader = new FileReader();
-            reader.onload = function(e) {
-                db.ref('stories').push({
-                    img: e.target.result,
-                    text: desc,
-                    expires: Date.now() + (24 * 60 * 60 * 1000) // +24 часа
-                });
-                alert("История добавлена!");
-                closeAdmin();
-            };
-            reader.readAsDataURL(file);
+            reader.onloadend = () => { tempBase64 = reader.result; if(preview){preview.src = reader.result; preview.classList.remove('hidden');} };
+            if (file) reader.readAsDataURL(file);
         }
 
-        function syncStories() {
-            db.ref('stories').on('value', (snap) => {
-                const list = document.getElementById('stories-list');
-                list.innerHTML = "";
-                const now = Date.now();
-                snap.forEach(child => {
-                    const val = child.val();
-                    if (now < val.expires) {
-                        const node = document.createElement('div');
-                        node.className = 'story-node';
-                        node.innerHTML = `<img src="${val.img}" onclick="alert('${val.text || 'Новости города'}')">`;
-                        list.appendChild(node);
-                    } else {
-                        child.ref.remove(); // Удаляем просроченные из базы
-                    }
-                });
-            });
+        // --- LIKES ---
+        function toggleLike(type, id) {
+            const key = `likes_${type}_${id}`;
+            localStorage.getItem(key) === 'true' ? localStorage.removeItem(key) : localStorage.setItem(key, 'true');
+            renderNews(); renderSports(); renderStories(); renderIdeas();
         }
+        const getLikeIcon = (type, id) => localStorage.getItem(`likes_${type}_${id}`) === 'true' ? '❤️' : '🤍';
+
+        // --- STORIES ---
+        function renderStories() {
+            const list = document.getElementById('stories-list');
+            const now = Date.now();
+            let stories = JSON.parse(localStorage.getItem('tk_stories') || '[]');
+            stories = stories.filter(s => (now - s.timestamp) < 86400000);
+            localStorage.setItem('tk_stories', JSON.stringify(stories));
+            list.innerHTML = stories.map((s, i) => `<div onclick="viewStory(${i})" class="min-w-[70px] flex flex-col items-center gap-1"><div class="w-16 h-16 rounded-full story-ring shadow-md"><img src="${s.url}" class="w-full h-full rounded-full object-cover border-2 border-white"></div><span class="text-[8px] font-black text-gray-400 uppercase italic">Live</span></div>`).join('');
+        }
+        function addStory() {
+            tempBase64 = "";
+            const body = document.getElementById('modal-body'); document.getElementById('modal-title').innerText = 'НОВАЯ ИСТОРИЯ';
+            body.innerHTML = `<div class="space-y-6 text-center"><div class="p-8 border-2 border-dashed border-gray-100 rounded-[40px]"><img id="preview-img" class="w-32 h-32 mx-auto rounded-full object-cover hidden mb-4 shadow-lg"><label class="bg-rose-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] cursor-pointer">Выбрать фото<input type="file" accept="image/*" class="hidden" onchange="handleFileSelect(event)"></label></div><button onclick="saveStory()" class="w-full bg-indigo-600 text-white p-5 rounded-[30px] font-black uppercase">Опубликовать</button></div>`;
+            openModalDirectly();
+        }
+        function saveStory() { if(!tempBase64) return; let d = JSON.parse(localStorage.getItem('tk_stories') || '[]'); d.push({ url: tempBase64, timestamp: Date.now() }); localStorage.setItem('tk_stories', JSON.stringify(d)); renderStories(); closeModal(); }
+        function viewStory(i) {
+            const s = JSON.parse(localStorage.getItem('tk_stories'))[i];
+            const body = document.getElementById('modal-body'); document.getElementById('modal-title').innerText = 'ИСТОРИЯ';
+            body.innerHTML = `<div class="relative w-full h-[65vh] rounded-[40px] overflow-hidden bg-black"><img src="${s.url}" class="w-full h-full object-cover"><button onclick="toggleLike('story', '${i}'); viewStory(${i})" class="absolute bottom-10 right-6 text-4xl drop-shadow-lg transition">${getLikeIcon('story', i)}</button><div class="absolute top-4 left-4 right-4 h-1 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white animate-progress"></div></div></div>`;
+            openModalDirectly(); setTimeout(closeModal, 5000);
+        }
+
+        // --- IDEAS ---
+        function renderIdeas() {
+            const list = document.getElementById('ideas-list');
+            const data = JSON.parse(localStorage.getItem('tk_ideas') || '[]');
+            if(data.length === 0) { list.innerHTML = `<p class="text-center py-10 text-gray-300 font-black uppercase text-[10px]">Идей пока нет</p>`; return; }
+            list.innerHTML = data.slice().reverse().map((item, i) => {
+                const idx = data.length - 1 - i;
+                return `<div class="bg-white p-6 rounded-[35px] shadow-sm border border-gray-50 space-y-3 relative">
+                    <div class="flex justify-between items-start"><div><span class="text-[9px] font-black uppercase text-indigo-400 tracking-widest">${item.user}</span></div>
+                    <div class="flex gap-3 items-center">${isAdmin() ? `<button onclick="deleteItem('ideas', ${idx})" class="text-gray-300 text-xs">🗑️</button>` : ''} <button onclick="toggleLike('idea', '${item.id}')" class="text-xl">${getLikeIcon('idea', item.id)}</button></div></div>
+                    <p class="text-gray-700 font-bold italic leading-snug">${item.text}</p></div>`;
+            }).join('');
+        }
+        function saveIdea() {
+            const txt = document.getElementById('idea-text').value.trim(); const user = localStorage.getItem('tk_user') || 'Гость';
+            if(txt) { let list = JSON.parse(localStorage.getItem('tk_ideas') || '[]'); list.push({id: Date.now(), user, text: txt, date: new Date().toLocaleDateString('ru-RU')}); localStorage.setItem('tk_ideas', JSON.stringify(list)); closeModal(); renderIdeas(); showPage('ideas-page'); }
+        }
+
+        // --- SPORTS & EVENTS ---
+        function toggleSportTab(tab) {
+            document.getElementById('sport-active').classList.toggle('hidden', tab !== 'hall');
+            document.getElementById('sport-champions').classList.toggle('hidden', tab !== 'champions');
+            document.getElementById('tab-hall').className = tab === 'hall' ? "text-indigo-600 font-black uppercase text-[10px] tracking-widest pb-2 border-b-2 border-indigo-600" : "text-gray-400 font-black uppercase text-[10px] tracking-widest pb-2";
+            document.getElementById('tab-champs').className = tab === 'champions' ? "text-indigo-600 font-black uppercase text-[10px] tracking-widest pb-2 border-b-2 border-indigo-600" : "text-gray-400 font-black uppercase text-[10px] tracking-widest pb-2";
+        }
+        function renderSportEvents() {
+            const list = document.getElementById('active-events'); const events = JSON.parse(localStorage.getItem('tk_sport_events') || '[]'); const user = localStorage.getItem('tk_user') || 'Гость';
+            if(events.length === 0) { list.innerHTML = `<p class="text-center py-10 text-gray-300 font-black uppercase text-[10px]">Нет активных сборов</p>`; return; }
+            list.innerHTML = events.slice().reverse().map((ev, i) => {
+                const idx = events.length - 1 - i; const joined = ev.players.includes(user);
+                return `<div class="bg-white p-7 rounded-[45px] shadow-sm border border-gray-100 space-y-4">
+                    <div><span class="text-[9px] font-black uppercase text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">${ev.time}</span><h3 class="text-xl font-black text-gray-800 italic uppercase mt-2">${ev.title}</h3><p class="text-gray-400 text-[9px] font-bold">Место: ${ev.place}</p></div>
+                    <div class="flex flex-wrap gap-2">${ev.players.map(p => `<span class="bg-gray-50 text-gray-500 text-[8px] font-black px-2 py-1 rounded-full border border-gray-100">${p}</span>`).join('')}</div>
+                    <div class="flex gap-2"><button onclick="joinEvent(${idx})" class="flex-1 ${joined ? 'bg-gray-100 text-gray-400' : 'bg-green-500 text-white'} p-4 rounded-[25px] font-black uppercase text-[9px] tracking-widest">${joined ? 'ОТМЕНИТЬ' : 'Я С ВАМИ! 🚀'}</button>
+                    ${isAdmin() ? `<button onclick="deleteItem('sport_events', ${idx})" class="bg-gray-50 p-4 rounded-[25px]">🗑️</button>` : ''}</div></div>`;
+            }).join('');
+        }
+        function joinEvent(idx) {
+            let evs = JSON.parse(localStorage.getItem('tk_sport_events') || '[]'); const user = localStorage.getItem('tk_user') || 'Гость';
+            evs[idx].players.includes(user) ? evs[idx].players = evs[idx].players.filter(p => p !== user) : evs[idx].players.push(user);
+            localStorage.setItem('tk_sport_events', JSON.stringify(evs)); renderSportEvents();
+        }
+
+        // --- TOURISM & CHAMPIONS (GA LERY) ---
+        function addTourismPrompt() {
+            tempBase64 = ""; const body = document.getElementById('modal-body'); document.getElementById('modal-title').innerText = 'ТУРИЗМ';
+            body.innerHTML = `<div class="space-y-4"><div class="p-6 border-2 border-dashed border-gray-100 rounded-[35px] text-center"><img id="preview-img" class="w-full h-40 object-cover rounded-[30px] hidden mb-4"><label class="bg-emerald-500 text-white px-6 py-2 rounded-xl font-black text-[10px] cursor-pointer inline-block">ФОТО ИЗ ГАЛЕРЕИ<input type="file" accept="image/*" class="hidden" onchange="handleFileSelect(event)"></label></div><input type="text" id="t-title" placeholder="Название" class="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold"><input type="text" id="t-phone" placeholder="Телефон гида" class="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold"><textarea id="t-desc" placeholder="Описание" class="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold"></textarea><button onclick="saveTourism()" class="w-full bg-indigo-600 text-white p-5 rounded-[30px] font-black uppercase shadow-lg">СОХРАНИТЬ</button></div>`;
+            openModalDirectly();
+        }
+        function saveTourism() {
+            const title = document.getElementById('t-title').value; if(!title || !tempBase64) return;
+            let d = JSON.parse(localStorage.getItem('tk_tourism') || '[]'); d.push({title, url: tempBase64, desc: document.getElementById('t-desc').value, phone: document.getElementById('t-phone').value});
+            localStorage.setItem('tk_tourism', JSON.stringify(d)); renderTourism(); closeModal();
+        }
+        function renderTourism() {
+            const list = document.getElementById('tourism-list'); const data = JSON.parse(localStorage.getItem('tk_tourism') || '[]');
+            list.innerHTML = data.slice().reverse().map((t, i) => { const idx = data.length-1-i; return `<div class="bg-white rounded-[45px] shadow-sm border border-gray-50 overflow-hidden relative"><img src="${t.url}" class="w-full h-64 object-cover" onclick="openTourismDetail(${idx})"><div class="p-7 flex justify-between items-center"><h3 class="font-black text-gray-800 text-lg italic uppercase">${t.title}</h3><div class="flex gap-3">${isAdmin() ? `<button onclick="editItem('tourism', ${idx})" class="text-gray-300">✏️</button><button onclick="deleteItem('tourism', ${idx})" class="text-gray-300">🗑️</button>` : ''}</div></div></div>`; }).join('');
+        }
+
+        function addSportsmanPrompt() {
+            tempBase64 = ""; const body = document.getElementById('modal-body'); document.getElementById('modal-title').innerText = 'ЧЕМПИОН';
+            body.innerHTML = `<div class="space-y-4 text-center"><div class="p-6 border-2 border-dashed border-gray-100 rounded-[35px]"><img id="preview-img" class="w-24 h-24 mx-auto rounded-3xl object-cover hidden mb-4 shadow-xl"><label class="bg-amber-500 text-white px-5 py-2 rounded-xl font-black text-[10px] cursor-pointer">ФОТО ИЗ ГАЛЕРЕИ<input type="file" accept="image/*" class="hidden" onchange="handleFileSelect(event)"></label></div><input type="text" id="s-name" placeholder="ФИО" class="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold"><input type="text" id="s-sport" placeholder="Спорт" class="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold"><input type="text" id="s-age" placeholder="Возраст" class="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold"><textarea id="s-ach" placeholder="Достижения" class="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold"></textarea><button onclick="saveSportsman()" class="w-full bg-indigo-600 text-white p-5 rounded-[30px] font-black uppercase shadow-lg">СОХРАНИТЬ</button></div>`;
+            openModalDirectly();
+        }
+        function saveSportsman() {
+            const name = document.getElementById('s-name').value; if(!name || !tempBase64) return;
+            let d = JSON.parse(localStorage.getItem('tk_sports') || '[]'); d.push({name, sport: document.getElementById('s-sport').value, photo: tempBase64, age: document.getElementById('s-age').value, achievements: document.getElementById('s-ach').value, id: Date.now()});
+            localStorage.setItem('tk_sports', JSON.stringify(d)); renderSports(); closeModal();
+        }
+        function renderSports() {
+            const list = document.getElementById('sports-list'); const data = JSON.parse(localStorage.getItem('tk_sports') || '[]');
+            list.innerHTML = data.map((s, i) => `<div class="bg-white p-5 rounded-[40px] shadow-sm border border-gray-50 flex items-center gap-5 relative"><img src="${s.photo}" class="w-16 h-16 rounded-2xl object-cover" onclick="openSportsman(${i})"><div class="flex-1" onclick="openSportsman(${i})"><h3 class="font-black text-gray-800 text-lg leading-none uppercase">${s.name}</h3><p class="text-indigo-500 text-[10px] font-black uppercase">${s.sport}</p></div><div class="flex gap-3">${isAdmin() ? `<button onclick="editItem('sports', ${i})" class="text-gray-300">✏️</button><button onclick="deleteItem('sports', ${i})" class="text-gray-300">🗑️</button>` : ''} <button onclick="toggleLike('sports', '${s.id||i}')" class="text-xl">${getLikeIcon('sports', s.id||i)}</button></div></div>`).join('');
+        }
+
+        // --- NEWS ---
+        function renderNews() {
+            const feed = document.getElementById('vertical-feed'); const data = JSON.parse(localStorage.getItem('tk_news_list') || '[]');
+            if(data.length > 0) document.getElementById('last-news-title').innerText = data[data.length-1].text.substring(0, 50) + '...';
+            feed.innerHTML = data.slice().reverse().map((item, i) => {
+                const idx = data.length - 1 - i;
+                return `<div class="bg-white p-8 rounded-[45px] shadow-sm border border-gray-50 space-y-4 relative"><div class="flex justify-between items-center"><span class="text-[9px] font-black uppercase text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">${item.date}</span><div class="flex gap-4 items-center">${isAdmin() ? `<button onclick="editItem('news', ${idx})" class="text-gray-300">✏️</button><button onclick="deleteItem('news', ${idx})" class="text-gray-300">🗑️</button>` : ''}<button onclick="toggleLike('news', '${item.id}')" class="text-2xl">${getLikeIcon('news', item.id)}</button></div></div><p class="text-gray-800 text-lg font-bold italic">${item.text}</p></div>`;
+            }).join('');
+        }
+        function addNewsPrompt() { const t = prompt("Текст новости:"); if(t){ let d = JSON.parse(localStorage.getItem('tk_news_list') || '[]'); d.push({text: t, date: new Date().toLocaleDateString('ru-RU'), id: Date.now()}); localStorage.setItem('tk_news_list', JSON.stringify(d)); renderNews(); closeAdmin(); } }
+
+        // --- SERVICE MODALS ---
+        function openModal(type) {
+            const body = document.getElementById('modal-body'); const title = document.getElementById('modal-title');
+            if(type === 'taxi') { title.innerText = 'ТАКСИ 🚕'; body.innerHTML = `<a href="tel:+79407260260" class="flex justify-between items-center p-8 bg-yellow-50 rounded-[40px] border border-yellow-100 shadow-sm font-black text-yellow-900 text-xl italic">+7 940 726-02-60<span>📞</span></a>`; }
+            if(type === 'transport') { title.innerText = 'РЕЙСЫ 🚌'; body.innerHTML = `<div class="p-7 bg-blue-50 rounded-[35px] border border-blue-100"><b class="text-blue-900 text-lg uppercase font-black italic">Сухум — 300 ₽</b><p class="text-xs text-blue-600 font-bold mt-2">08:00, 11:30, 14:00, 16:30</p></div>`; }
+            if(type === 'ideas') { title.innerText = 'ПРЕДЛОЖЕНИЕ 💡'; body.innerHTML = `<textarea id="idea-text" class="w-full p-7 bg-gray-50 rounded-[40px] border-none font-bold text
+            if(type === 'ideas') { 
+                title.innerText = 'ПРЕДЛОЖЕНИЕ 💡'; 
+                body.innerHTML = `<textarea id="idea-text" class="w-full p-7 bg-gray-50 rounded-[40px] border-none font-bold text-sm mb-4 outline-none" rows="4" placeholder="Твое предложение?"></textarea>
+                <button onclick="saveIdea()" class="w-full bg-indigo-600 text-white p-6 rounded-[30px] font-black uppercase text-xs shadow-lg">ОТПРАВИТЬ</button>`; 
+            }
+            if(type === 'create-sport') { 
+                createSportEvent(); 
+                return; // Она сама открывает промпты
+            }
+            openModalDirectly();
+        }
+
+        function login() { const n = document.getElementById('name-in').value.trim(); if(n) { localStorage.setItem('tk_user', n); initApp(); showPage('home'); } }
+        function logout() { localStorage.clear(); location.reload(); }
+        function openAdmin() { document.getElementById('admin-modal').classList.remove('hidden'); }
+        function closeAdmin() { document.getElementById('admin-modal').classList.add('hidden'); }
+
+        function initApp() {
+            const u = localStorage.getItem('tk_user');
+            renderNews(); renderSports(); renderTourism(); renderStories(); renderIdeas(); renderSportEvents(); fetchWeather();
+            if(u) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('user-box').classList.remove('hidden');
+                document.getElementById('u-name').innerText = u;
+                document.getElementById('header-user').innerText = u;
+                if(u.toLowerCase() === 'admin') { 
+                    document.getElementById('admin-btn').classList.remove('hidden'); 
+                    document.getElementById('add-story-btn').classList.remove('hidden'); 
+                }
+            }
+        }
+        initApp();
     </script>
 </body>
 </html>
