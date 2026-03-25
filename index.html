@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>admin: ТКУАРЧАЛ</title>
+    <script src="https://www.gstatic.com"></script>
+    <script src="https://www.gstatic.com"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; margin: 0; background: #f0f2f5; padding-bottom: 80px; }
+        .header { background: #4a3aff; color: white; padding: 50px 20px; border-radius: 0 0 35px 35px; text-align: center; position: relative; }
+        .admin-btn { position: absolute; top: 0; right: 0; width: 60px; height: 60px; opacity: 0; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; margin-top: -30px; }
+        .menu-item { background: white; padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); font-weight: bold; color: #4a3aff; border: none; }
+        .post { background: white; margin: 15px; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .post img { width: 100%; display: block; }
+        .post-content { padding: 15px; font-size: 14px; }
+        #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; padding: 25px; box-sizing: border-box; overflow-y: auto; }
+        input, textarea { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
+        .btn { background: #4a3aff; color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="admin-btn" onclick="openAdmin()"></div>
+    <h1 style="margin:0; font-style: italic;">admin</h1>
+    <p style="margin:5px 0 0; opacity: 0.8; font-size: 12px;">ГОРОД В ТВОЕМ КАРМАНЕ</p>
+</div>
+
+<div class="menu-grid">
+    <button class="menu-item">🚕 Такси</button>
+    <button class="menu-item">🏔️ Туризм</button>
+</div>
+
+<div id="feed"></div>
+
+<div id="admin-panel">
+    <h3>Управление</h3>
+    <input type="text" id="post-img" placeholder="Ссылка на фото (URL)">
+    <textarea id="post-text" rows="3" placeholder="Текст новости..."></textarea>
+    <button class="btn" onclick="addPost()">ОПУБЛИКОВАТЬ</button>
+    <button class="btn" style="background:#eee; color:#333; margin-top:20px;" onclick="document.getElementById('admin-panel').style.display='none'">ЗАКРЫТЬ</button>
+</div>
+
+<script>
+    const firebaseConfig = {
+        databaseURL: "https://admincity-d8b19-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function openAdmin() {
+        if (prompt("Пароль:") === "7777") {
+            document.getElementById('admin-panel').style.display = 'block';
+        }
+    }
+
+    function addPost() {
+        const img = document.getElementById('post-img').value;
+        const text = document.getElementById('post-text').value;
+        if(img && text) {
+            db.ref('posts').push({ img, text, time: Date.now() });
+            alert("Выложено!");
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+    }
+
+    db.ref('posts').on('value', snap => {
+        const feed = document.getElementById('feed');
+        feed.innerHTML = '';
+        snap.forEach(child => {
+            const data = child.val();
+            feed.innerHTML = `
+                <div class="post">
+                    <img src="${data.img}">
+                    <div class="post-content"><b>admin</b> ${data.text}</div>
+                </div>` + feed.innerHTML;
+        });
+    });
+</script>
+
+</body>
+</html>
