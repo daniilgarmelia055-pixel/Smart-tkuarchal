@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Tkuarchal</title>
+    
+    <!-- Firebase SDK (для работы общей базы данных) -->
+    <script src="https://www.gstatic.com"></script>
+    <script src="https://www.gstatic.com"></script>
+
+    <style>
+        :root { --main-blue: #1a237e; --accent-blue: #3f51b5; --bg-gray: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-gray); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        
+        /* Шапка */
+        .header { background: linear-gradient(135deg, var(--accent-blue), var(--main-blue)); color: white; padding: 25px 20px; border-radius: 0 0 30px 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .header h1 { margin: 0; font-size: 1.6em; letter-spacing: 1px; cursor: pointer; }
+        
+        /* Истории (Stories) */
+        .stories-bar { display: flex; gap: 15px; padding: 15px; overflow-x: auto; background: white; margin-bottom: 10px; border-bottom: 1px solid #ddd; scrollbar-width: none; }
+        .stories-bar::-webkit-scrollbar { display: none; }
+        .story-node { min-width: 70px; height: 70px; border-radius: 50%; border: 3px solid #ff8501; padding: 2px; }
+        .story-node img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+        /* Сетка меню */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; }
+        .menu-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s; }
+        .menu-card:active { transform: scale(0.95); }
+        .menu-card img { width: 45px; margin-bottom: 10px; }
+        .menu-card span { font-weight: bold; color: #333; display: block; font-size: 0.9em; }
+
+        /* Разделы контента */
+        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Карточки (Спорт / Туризм / Идеи) */
+        .item-card { background: white; border-radius: 20px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .item-img { width: 100%; height: 200px; background-size: cover; background-position: center; }
+        .item-content { padding: 15px; }
+        .item-title { font-weight: bold; font-size: 1.2em; color: var(--main-blue); margin: 0; }
+        .item-info { font-size: 0.9em; color: #666; margin: 10px 0; line-height: 1.4; }
+        .call-btn { display: block; text-align: center; background: #4caf50; color: white; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: bold; }
+
+        /* Регистрация */
+        #reg-screen { position: fixed; inset: 0; background: white; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+        .input-box { width: 100%; padding: 15px; border: 2px solid var(--accent-blue); border-radius: 15px; margin: 20px 0; font-size: 1.1em; outline: none; }
+
+        /* Админка Сторис */
+        #admin-modal { position: fixed; top: 15%; left: 5%; width: 90%; background: white; padding: 25px; border-radius: 25px; box-shadow: 0 0 40px rgba(0,0,0,0.4); z-index: 5000; display: none; box-sizing: border-box; }
+
+        .footer-nav { position: fixed; bottom: 20px; left: 20px; right: 20px; background: var(--main-blue); color: white; padding: 15px; text-align: center; border-radius: 20px; font-weight: bold; cursor: pointer; display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- РЕГИСТРАЦИЯ -->
+    <div id="reg-screen">
+        <h2 style="color: var(--main-blue)">Smart Tkuarchal</h2>
+        <p>Добро пожаловать в городское приложение! Введите ваше имя:</p>
+        <input type="text" id="reg-name" class="input-box" placeholder="Ваше имя...">
+        <button onclick="completeReg()" style="width:100%; padding:15px; background: #4caf50; color:white; border:none; border-radius:15px; font-weight:bold; font-size:1em;">НАЧАТЬ</button>
+    </div>
+
+    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <div id="main-ui" class="section active">
+        <div class="header">
+            <h1 id="logo" onclick="tapLogo()">Smart Tkuarchal</h1>
+            <p id="user-greeting" style="font-size: 0.85em; opacity: 0.9; margin-top: 5px;">Привет, житель!</p>
+        </div>
+
+        <!-- Полоса Историй -->
+        <div class="stories-bar" id="stories-list">
+            <!-- Сюда добавляются истории -->
+        </div>
+
+        <div class="grid">
+            <div class="menu-card" onclick="showSection('tourism-section')">
+                <img src="https://img.icons8.com">
+                <span>ТУРИЗМ</span>
+            </div>
+            <div class="menu-card" onclick="showSection('sport-section')">
+                <img src="https://img.icons8.com">
+                <span>СПОРТ</span>
+            </div>
+            <div class="menu-card" onclick="showSection('ideas-section')">
+                <img src="https://img.icons8.com">
+                <span>ИДЕИ ГОРОДА</span>
+            </div>
+            <div class="menu-card" onclick="alert('Раздел в разработке')">
+                <img src="https://img.icons8.com">
+                <span>ТАКСИ</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ТУРИЗМ -->
+    <div id="tourism-section" class="section">
+        <h2 style="color: var(--main-blue)">🏔 Путеводитель</h2>
+        <div class="item-card">
+            <div class="item-img" style="background-image: url('https://images.unsplash.com');"></div>
+            <div class="item-content">
+                <p class="item-title">Акармарские Водопады</p>
+                <p class="item-info">Потрясающее место для отдыха. Описание и маршрут скоро...</p>
+                <a href="tel:+79400000000" class="call-btn">📞 ПОЗВОНИТЬ ГИДУ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- СПОРТ -->
+    <div id="sport-section" class="section">
+        <h2 style="color: var(--main-blue)">🏆 Стена Славы</h2>
+        <div class="item-card">
+            <div class="item-img" style="background-image: url('https://images.unsplash.com');"></div>
+            <div class="item-content">
+                <p class="item-title">Ахмет Ибрагимов</p>
+                <p class="item-info">Вольная борьба. Чемпион Ткуарчала 2024. Рост: 180см, Вес: 75кг.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- СТЕНА ИДЕЙ -->
+    <div id="ideas-section" class="section">
+        <h2 style="color: var(--main-blue)">💡 Стена идей</h2>
+        <textarea id="idea-text" class="input-box" style="margin-top:0" placeholder="Что улучшить в городе?"></textarea>
+        <button onclick="sendIdea()" style="width:100%; padding:15px; background: var(--accent-blue); color:white; border:none; border-radius:15px; font-weight:bold;">ОПУБЛИКОВАТЬ</button>
+        <div id="ideas-wall" style="margin-top:20px;"></div>
+    </div>
+
+    <!-- АДМИНКА ДЛЯ СТОРИС -->
+    <div id="admin-modal">
+        <h3>Добавить Историю</h3>
+        <p style="font-size: 0.8em; color: #666;">Выберите фото из галереи:</p>
+        <input type="file" id="story-file" accept="image/*">
+        <input type="text" id="story-desc" class="input-box" placeholder="Короткая подпись...">
+        <button onclick="uploadStory()" style="width:100%; padding:15px; background:#4caf50; color:white; border:none; border-radius:15px; font-weight:bold;">ОПУБЛИКОВАТЬ НА 24Ч</button>
+        <button onclick="closeAdmin()" style="width:100%; margin-top:10px; background:none; border:none; color:red;">Закрыть</button>
+    </div>
+
+    <div class="footer-nav" id="back-btn" onclick="showSection('main-ui')">⬅ НАЗАД В МЕНЮ</div>
+
+    <script>
+        // --- КОНФИГУРАЦИЯ FIREBASE (Вставь свои данные здесь) ---
+        const firebaseConfig = {
+            apiKey: "ТВОЙ_КЛЮЧ",
+            databaseURL: "ТВОЯ_ССЫЛКА_DB",
+            projectId: "ТВОЙ_ID",
+            appId: "ТВОЙ_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- ЛОГИКА ПРОФИЛЯ ---
+        window.onload = function() {
+            const name = localStorage.getItem('tku_user');
+            if (!name) {
+                document.getElementById('reg-screen').style.display = 'flex';
+            } else {
+                document.getElementById('user-greeting').innerText = "Привет, " + name + "!";
+                syncStories();
+                syncIdeas();
+            }
+        };
+
+        function completeReg() {
+            const name = document.getElementById('reg-name').value;
+            if (name.length < 2) return alert("Введите имя");
+            localStorage.setItem('tku_user', name);
+            location.reload();
+        }
+
+        // --- НАВИГАЦИЯ ---
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('back-btn').style.display = (id === 'main-ui') ? 'none' : 'block';
+        }
+
+        // --- СТЕНА ИДЕЙ ---
+        function sendIdea() {
+            const text = document.getElementById('idea-text').value;
+            const name = localStorage.getItem('tku_user');
+            if (!text) return;
+            db.ref('ideas').push({ author: name, text: text, date: Date.now() });
+            document.getElementById('idea-text').value = "";
+        }
+
+        function syncIdeas() {
+            db.ref('ideas').on('value', (snap) => {
+                const wall = document.getElementById('ideas-wall');
+                wall.innerHTML = "";
+                snap.forEach(child => {
+                    const val = child.val();
+                    const card = `<div class="item-card" style="padding:15px; border-left:5px solid var(--accent-blue);">
+                        <small style="color:var(--accent-blue); font-weight:bold;">👤 ${val.author}</small>
+                        <p style="margin:5px 0 0;">${val.text}</p>
+                    </div>`;
+                    wall.innerHTML = card + wall.innerHTML;
+                });
+            });
+        }
+
+        // --- СТОРИС (Админ-вход: 3 клика по лого) ---
+        let taps = 0;
+        function tapLogo() {
+            taps++;
+            if (taps === 3) { document.getElementById('admin-modal').style.display = 'block'; taps = 0; }
+        }
+        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
+
+        function uploadStory() {
+            const file = document.getElementById('story-file').files[0];
+            const desc = document.getElementById('story-desc').value;
+            if (!file) return alert("Выбери фото!");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                db.ref('stories').push({
+                    img: e.target.result,
+                    text: desc,
+                    expires: Date.now() + (24 * 60 * 60 * 1000) // +24 часа
+                });
+                alert("История добавлена!");
+                closeAdmin();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function syncStories() {
+            db.ref('stories').on('value', (snap) => {
+                const list = document.getElementById('stories-list');
+                list.innerHTML = "";
+                const now = Date.now();
+                snap.forEach(child => {
+                    const val = child.val();
+                    if (now < val.expires) {
+                        const node = document.createElement('div');
+                        node.className = 'story-node';
+                        node.innerHTML = `<img src="${val.img}" onclick="alert('${val.text || 'Новости города'}')">`;
+                        list.appendChild(node);
+                    } else {
+                        child.ref.remove(); // Удаляем просроченные из базы
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
