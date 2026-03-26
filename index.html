@@ -1,264 +1,58 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Tkuarchal</title>
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --bg: #f1f5f9;
-            --card: #ffffff;
-            --text: #1e293b;
-            --accent: #3b82f6;
-        }
+<nav class="nav-bar">
+    <a href="#" class="nav-link active" onclick="loadData('tourism')">🏠</a>
+    <a href="#" class="nav-link">📩</a>
+    <a href="#" class="nav-link">🗺️</a>
+    <a href="#" class="nav-link">👤</a>
+</nav>
 
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding-bottom: 90px;
-            color: var(--text);
-            overflow-x: hidden;
-        }
+<script>
+    // Твоя ссылка уже вставлена!
+    const APP_URL = "https://script.google.com"; 
 
-        /* ШАПКА */
-        header {
-            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-            padding: 40px 20px 50px;
-            border-bottom-left-radius: 40px;
-            border-bottom-right-radius: 40px;
-            color: white;
-            position: relative;
-        }
-        header h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: 1px; text-transform: lowercase; }
-        header p { margin: 5px 0 0; font-size: 11px; opacity: 0.8; font-weight: 700; text-transform: uppercase; }
+    async function fetchWeather() {
+        try {
+            const res = await fetch("https://api.open-meteo.com");
+            const data = await res.json();
+            const t = Math.round(data.current_weather.temperature);
+            document.getElementById('temp').innerText = (t > 0 ? '+' : '') + t + "°C";
+        } catch (e) { document.getElementById('temp').innerText = "err°C"; }
+    }
 
-        /* ПОГОДА */
-        .weather-card {
-            background: var(--card);
-            margin: -35px 20px 20px;
-            padding: 25px;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.07);
-        }
-        .temp-val { font-size: 42px; font-weight: 900; color: #334155; }
-        .weather-label { font-size: 12px; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
-
-        /* СЕТКА КНОПОК */
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 0 20px 25px;
-        }
-        .card {
-            background: var(--card);
-            padding: 25px 10px;
-            border-radius: 30px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 800;
-            font-size: 13px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
-            border: none;
-            transition: 0.3s;
-            color: var(--text);
-        }
-        .card:active { transform: scale(0.92); background: #f8fafc; }
-        .card-icon { font-size: 35px; display: block; margin-bottom: 12px; }
-
-        /* ИНСТА-ЛЕНТА (ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ) */
-        .section-header { padding: 0 25px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .section-title { font-size: 14px; font-weight: 900; color: var(--primary); text-transform: uppercase; }
-
-        .insta-scroll {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 15px;
-            padding: 0 20px 30px;
-            scrollbar-width: none;
-        }
-        .insta-scroll::-webkit-scrollbar { display: none; }
-
-        .insta-item {
-            flex: 0 0 85%;
-            scroll-snap-align: center;
-            background: var(--card);
-            border-radius: 30px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        }
-        .insta-img { width: 100%; height: 220px; object-fit: cover; background: #e2e8f0; }
-        .insta-info { padding: 20px; }
-        .insta-info h4 { margin: 0 0 8px 0; font-size: 18px; font-weight: 800; }
-        .insta-info p { margin: 0; font-size: 14px; color: #64748b; line-height: 1.5; }
-
-        /* НИЖНЕЕ МЕНЮ */
-        .nav-bar {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 80px; background: white;
-            display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
-            border-top-left-radius: 35px; border-top-right-radius: 35px;
-            z-index: 1000;
-        }
-        .nav-link { text-decoration: none; font-size: 28px; color: #cbd5e1; transition: 0.3s; }
-        .nav-link.active { color: var(--primary); transform: translateY(-5px); }
-
-        /* ОКНО SOS (СЛУЖБЫ) */
-        #modal-sos {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 2000; align-items: flex-end;
-        }
-        .modal-body {
-            background: white; width: 100%; padding: 30px 20px 45px;
-            border-top-left-radius: 40px; border-top-right-radius: 40px;
-            box-sizing: border-box; animation: slideUp 0.3s ease-out;
-            max-height: 80vh; overflow-y: auto;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
-        .sos-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 10px; border-bottom: 1px solid #f1f5f9;
-            text-decoration: none; color: var(--text);
-        }
-        .sos-name { font-weight: 700; font-size: 17px; }
-        .sos-phone { color: var(--primary); font-weight: 900; font-size: 19px; }
-
-        .loader { text-align: center; padding: 40px; color: #94a3b8; font-weight: 600; font-size: 14px; }
-    </style>
-</head>
-<body>
-
-    <header>
-        <h1>admin</h1>
-        <p>Город в твоем кармане</p>
-    </header>
-
-    <div class="weather-card">
-        <div>
-            <div class="weather-label">Погода Ткуарчал</div>
-            <div class="temp-val" id="temp">--°C</div>
-        </div>
-        <div style="font-size: 50px;">☀️</div>
-    </div>
-
-    <div class="grid">
-        <div class="card" onclick="loadData('Туризм')"><span class="card-icon">🏔️</span>ТУРИЗМ</div>
-        <div class="card" onclick="openSOS()"><span class="card-icon">🆘</span>СЛУЖБЫ</div>
-        <div class="card" onclick="loadData('Рейсы')"><span class="card-icon">🚌</span>РЕЙСЫ</div>
-        <div class="card" onclick="loadData('Спорт')"><span class="card-icon">🏆</span>СПОРТ</div>
-    </div>
-
-    <div class="section-header">
-        <div class="section-title" id="view-title">Новости</div>
-        <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">ЛИСТАЙТЕ →</div>
-    </div>
-
-    <!-- ГОРИЗОНТАЛЬНАЯ ЛЕНТА -->
-    <div id="content-list" class="insta-scroll">
-        <div class="loader">Загрузка ленты...</div>
-    </div>
-
-    <!-- НИЖНЯЯ ПАНЕЛЬ -->
-    <nav class="nav-bar">
-        <a href="#" class="nav-link active" onclick="loadData('Новости')">🏠</a>
-        <a href="#" class="nav-link">📰</a>
-        <a href="#" class="nav-link">📸</a>
-        <a href="#" class="nav-link">🏆</a>
-        <a href="#" class="nav-link">👤</a>
-    </nav>
-
-    <!-- МОДАЛКА SOS -->
-    <div id="modal-sos" onclick="this.style.display='none'">
-        <div class="modal-body" onclick="event.stopPropagation()">
-            <div style="text-align:center; font-weight:900; color:#ef4444; margin-bottom:20px; font-size:20px;">ЭКСТРЕННЫЕ СЛУЖБЫ</div>
-            <div id="sos-numbers-list"></div>
-            <button style="width:100%; margin-top:25px; padding:18px; border-radius:20px; border:none; background:#f1f5f9; font-weight:800; color:#64748b;" onclick="document.getElementById('modal-sos').style.display='none'">ЗАКРЫТЬ</button>
-        </div>
-    </div>
-
-    <script>
-        // Твоя ссылка на Google Скрипт
-        const APP_URL = 'https://script.google.com';
-
-        // 1. ПОГОДА (Open-Meteo)
-        async function fetchWeather() {
-            try {
-                const r = await fetch('https://api.open-meteo.com');
-                const d = await r.json();
-                document.getElementById('temp').innerText = Math.round(d.current_weather.temperature) + '°C';
-            } catch(e) { console.error("Weather error"); }
-        }
-
-        // 2. ЗАГРУЗКА КОНТЕНТА (Новости / Туризм / Спорт / Рейсы)
-        async function loadData(tabName) {
-            const container = document.getElementById('content-list');
-            document.getElementById('view-title').innerText = tabName;
-            container.innerHTML = '<div class="loader">Обновление...</div>';
-            
-            try {
-                const res = await fetch(`${APP_URL}?type=${tabName}`);
-                const data = await res.json();
-                
-                if (data && data.length > 0) {
-                    container.innerHTML = '';
-                    data.forEach(item => {
-                        const v = Object.values(item);
-                        // v[0] - Заголовок, v[1] - Текст, v[2] - Фото (ссылка)
-                        const title = v[0] || "---";
-                        const desc = v[1] || "";
-                        const img = v[2] || "https://images.unsplash.com";
-
-                        container.innerHTML += `
-                            <div class="insta-item">
-                                <img src="${img}" class="insta-img" onerror="this.src='https://via.placeholder.com'">
-                                <div class="insta-info">
-                                    <h4>${title}</h4>
-                                    <p>${desc}</p>
-                                </div>
-                            </div>`;
-                    });
-                } else {
-                    container.innerHTML = '<div class="loader">Пусто в этой категории</div>';
-                }
-            } catch(e) {
-                container.innerHTML = '<div class="loader">Ошибка. Проверьте таблицу.</div>';
-            }
-        }
-
-        // 3. ОТКРЫТЬ SOS (Службы)
-        async function openSOS() {
-            const modal = document.getElementById('modal-sos');
-            const list = document.getElementById('sos-numbers-list');
-            modal.style.display = 'flex';
-            list.innerHTML = '<div class="loader">Загрузка номеров...</div>';
-            
-            try {
-                const res = await fetch(`${APP_URL}?type=Службы`);
-                const data = await res.json();
-                list.innerHTML = '';
+    async function loadData(tabName) {
+        const container = document.getElementById('content-list');
+        document.getElementById('view-title').innerText = tabName.toLowerCase();
+        container.innerHTML = '<div class="loader">Загрузка данных...</div>';
+        try {
+            const res = await fetch(${APP_URL}?type=${encodeURIComponent(tabName)});
+            const data = await res.json();
+            container.innerHTML = '';
+            if (data && data.length > 0) {
                 data.forEach(item => {
                     const v = Object.values(item);
-                    list.innerHTML += `
-                        <a href="tel:${v[1]}" class="sos-item">
-                            <span class="sos-name">${v[0]}</span>
-                            <span class="sos-phone">${v[1]}</span>
-                        </a>`;
+                    container.innerHTML += <div class="content-card"><h4>${v[0]}</h4><p>${v[1]}</p></div>;
                 });
-            } catch(e) { list.innerHTML = '<p style="text-align:center;">Ошибка загрузки</p>'; }
-        }
+            } else { container.innerHTML = '<div class="loader">Тут пока пусто</div>'; }
+        } catch (e) { container.innerHTML = '<div class="loader">Ошибка ссылки</div>'; }
+    }
 
-        // Запуск
-        fetchWeather();
-        loadData('Новости'); // По умолчанию открываем новости
-    </script>
+    async function openSOS() {
+        document.getElementById('modal-sos').style.display = 'flex';
+        const list = document.getElementById('sos-list');
+        list.innerHTML = '<div class="loader">Загрузка...</div>';
+        try {
+            const res = await fetch(${APP_URL}?type=${encodeURIComponent('Службы')});
+            const data = await res.json();
+            list.innerHTML = '';
+            data.forEach(item => {
+                const v = Object.values(item);
+                list.innerHTML += <a href="tel:${v[1]}" class="sos-item"><span>${v[0]}</span><span>${v[1]} 📞</span></a>;
+            });
+        } catch (e) { list.innerHTML = '<div class="loader">Ошибка загрузки</div>'; }
+    }
+
+    function closeSOS() { document.getElementById('modal-sos').style.display = 'none'; }
+
+    window.onload = () => { fetchWeather(); loadData('tourism'); };
+</script>
 </body>
 </html>
