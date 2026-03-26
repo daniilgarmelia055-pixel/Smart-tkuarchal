@@ -2,9 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City Admin App</title>
-    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>City App Admin</title>
     <style>
         :root {
             --primary: linear-gradient(135deg, #4b39ef 0%, #39d2c0 100%);
@@ -12,100 +11,118 @@
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: #333; overflow-x: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: #333; overflow-x: hidden; }
 
         /* ШАПКА */
-        .header { background: var(--primary); padding: 40px 20px 60px; border-radius: 0 0 40px 40px; color: white; }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 900; text-transform: lowercase; }
-        .header p { margin: 5px 0 0; font-size: 11px; opacity: 0.8; letter-spacing: 1.5px; font-weight: 700; }
+        .header { background: var(--primary); padding: 40px 20px 55px; border-radius: 0 0 40px 40px; color: white; position: relative; transition: 0.3s; }
+        .header-content { display: flex; align-items: center; gap: 15px; }
+        .header h1 { margin: 0; font-size: 26px; font-weight: 900; text-transform: lowercase; }
+        .header p { margin: 2px 0 0; font-size: 10px; opacity: 0.8; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
 
-        /* СТОРИС (ИНСТА-СТИЛЬ) */
-        .stories-container { display: flex; overflow-x: auto; padding: 20px; gap: 15px; scrollbar-width: none; margin-top: -10px; }
-        .stories-container::-webkit-scrollbar { display: none; }
-        .story { min-width: 75px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .story:active { transform: scale(0.9); }
-        .story-ring { 
-            width: 70px; height: 70px; border-radius: 50%; 
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #bc1888); 
-            padding: 3px; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px;
+        /* КНОПКА НАЗАД */
+        #back-btn { 
+            display: none; cursor: pointer; background: rgba(255,255,255,0.2); 
+            padding: 10px; border-radius: 15px; backdrop-filter: blur(10px); 
+            transition: 0.2s;
         }
-        .story img { width: 64px; height: 64px; border-radius: 50%; background: white; object-fit: cover; padding: 2px; }
-        .story span { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #555; }
+        #back-btn:active { transform: scale(0.9); }
+
+        /* СТОРИС */
+        .stories-container { display: flex; overflow-x: auto; padding: 20px; gap: 15px; scrollbar-width: none; }
+        .stories-container::-webkit-scrollbar { display: none; }
+        .story { min-width: 75px; text-align: center; cursor: pointer; }
+        .story-ring { 
+            width: 68px; height: 68px; border-radius: 50%; 
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #bc1888); 
+            padding: 3px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
+        }
+        .story img { width: 62px; height: 62px; border-radius: 50%; background: white; object-fit: cover; padding: 2px; }
+        .story span { font-size: 10px; font-weight: 800; color: #666; text-transform: uppercase; }
 
         /* ПОГОДА */
         .weather { background: white; margin: 0 20px 20px; padding: 20px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
-        .weather-info small { color: #aaa; font-weight: 700; font-size: 10px; letter-spacing: 0.5px; }
-        .weather-info div { font-size: 34px; font-weight: 900; margin-top: 5px; }
+        .weather-info small { color: #aaa; font-weight: 700; font-size: 10px; text-transform: uppercase; }
+        .weather-info div { font-size: 32px; font-weight: 900; margin-top: 5px; }
 
         /* СЕТКА КНОПОК */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; transition: 0.3s; }
         .card { 
-            background: white; border-radius: 35px; padding: 30px 15px; 
+            background: white; border-radius: 35px; padding: 30px 10px; 
             display: flex; flex-direction: column; align-items: center; 
             box-shadow: var(--shadow); transition: 0.2s; cursor: pointer;
         }
-        .card:active { transform: scale(0.95); background: #f0f4ff; }
-        .card img { width: 52px; height: 52px; margin-bottom: 15px; }
-        .card span { font-weight: 900; font-size: 13px; letter-spacing: 0.5px; }
+        .card:active { transform: scale(0.95); }
+        .card img { width: 50px; height: 50px; margin-bottom: 12px; }
+        .card span { font-weight: 800; font-size: 13px; color: #333; letter-spacing: 0.5px; }
 
-        /* ИДЕЯ */
-        .idea-btn { 
-            background: #f0f3ff; margin: 30px 20px; padding: 18px; border-radius: 25px; 
-            text-align: center; color: #4b39ef; font-weight: 800; font-size: 14px; 
-            box-shadow: 0 5px 15px rgba(75, 57, 239, 0.1); cursor: pointer;
-        }
+        /* ЭКРАН КАТЕГОРИИ (КОНТЕНТ) */
+        #category-screen { display: none; padding: 40px 20px; text-align: center; color: #aaa; }
 
         /* НИЖНЕЕ МЕНЮ */
         .nav { 
             position: fixed; bottom: 0; width: 100%; background: white; 
-            display: flex; justify-content: space-around; padding: 15px 0 25px; 
+            display: flex; justify-content: space-around; padding: 15px 0 30px; 
             box-shadow: 0 -10px 30px rgba(0,0,0,0.05); border-radius: 30px 30px 0 0;
         }
-        .nav img { width: 26px; height: 26px; opacity: 0.4; }
-        .nav img.active { opacity: 1; filter: none; }
+        .nav img { width: 24px; height: 24px; opacity: 0.3; }
+        .nav img.active { opacity: 1; filter: drop-shadow(0 0 5px rgba(75, 57, 239, 0.3)); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>admin</h1>
-        <p>ГОРОД В ТВОЕМ КАРМАНЕ</p>
-    </div>
-
-    <!-- ЛЕНТА СТОРИС -->
-    <div class="stories-container" id="stories-list">
-        <!-- Сюда подгрузятся истории из Google Таблицы -->
-    </div>
-
-    <div class="weather">
-        <div class="weather-info">
-            <small>ПОГОДА ТКУАРЧАЛ</small>
-            <div id="temp">24°C</div>
-        </div>
-        <img src="https://img.icons8.com" width="55">
-    </div>
-
-    <div class="menu-grid">
-        <div class="card" id="tourism">
-            <img src="https://img.icons8.com">
-            <span>ТУРИЗМ</span>
-        </div>
-        <div class="card" id="taxi">
-            <img src="https://img.icons8.com">
-            <span>ТАКСИ</span>
-        </div>
-        <div class="card" id="flights">
-            <img src="https://img.icons8.com">
-            <span>РЕЙСЫ</span>
-        </div>
-        <div class="card" id="sport">
-            <img src="https://img.icons8.com">
-            <span>СПОРТ</span>
+        <div class="header-content">
+            <!-- КНОПКА НАЗАД -->
+            <div id="back-btn" onclick="goBack()">
+                <img src="https://img.icons8.com" width="20">
+            </div>
+            <div>
+                <h1 id="main-title">admin</h1>
+                <p id="sub-title">ГОРОД В ТВОЕМ КАРМАНЕ</p>
+            </div>
         </div>
     </div>
 
-    <div class="idea-btn" onclick="sendIdea()">
-        💡 ЕСТЬ ИДЕЯ ДЛЯ ГОРОДА?
+    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <div id="home-screen">
+        <div class="stories-container" id="stories-list">
+            <div class="story"><div class="story-ring"><img src="https://img.icons8.com"></div><span>НОВОСТИ</span></div>
+            <div class="story"><div class="story-ring"><img src="https://img.icons8.com"></div><span>ОТДЫХ</span></div>
+            <div class="story"><div class="story-ring"><img src="https://img.icons8.com"></div><span>АФИША</span></div>
+        </div>
+
+        <div class="weather">
+            <div class="weather-info">
+                <small>ПОГОДА ТКУАРЧАЛ</small>
+                <div>24°C</div>
+            </div>
+            <img src="https://img.icons8.com" width="55">
+        </div>
+
+        <div class="grid">
+            <div class="card" onclick="openCategory('ТУРИЗМ', 'https://img.icons8.com')">
+                <img src="https://img.icons8.com">
+                <span>ТУРИЗМ</span>
+            </div>
+            <div class="card" onclick="openCategory('ТАКСИ', 'https://img.icons8.com')">
+                <img src="https://img.icons8.com">
+                <span>ТАКСИ</span>
+            </div>
+            <div class="card" onclick="openCategory('РЕЙСЫ', 'https://img.icons8.com')">
+                <img src="https://img.icons8.com">
+                <span>РЕЙСЫ</span>
+            </div>
+            <div class="card" onclick="openCategory('СПОРТ', 'https://img.icons8.com')">
+                <img src="https://img.icons8.com">
+                <span>СПОРТ</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН ВНУТРИ КАТЕГОРИИ -->
+    <div id="category-screen">
+        <img id="cat-icon" src="" width="80" style="margin-bottom: 20px; opacity: 0.2;">
+        <p>Здесь будет контент раздела...</p>
     </div>
 
     <div class="nav">
@@ -116,51 +133,41 @@
     </div>
 
     <script>
-        // ТВОЙ ID ТАБЛИЦЫ (ВСТАВЬ ЕГО СЮДА)
+        // ТВОЙ ID ТАБЛИЦЫ (ВСТАВЬ ЕГО СЮДА ДЛЯ СИНХРОНИЗАЦИИ)
         const SHEET_ID = 'ВСТАВЬ_СЮДА_ID_ТАБЛИЦЫ'; 
 
-        async function loadAppData() {
+        function openCategory(name, icon) {
+            // Прячем главный экран, показываем экран категории
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('category-screen').style.display = 'block';
+            
+            // Настраиваем шапку
+            document.getElementById('back-btn').style.display = 'block';
+            document.getElementById('main-title').innerText = name;
+            document.getElementById('sub-title').innerText = 'РАЗДЕЛ ГОРОДА';
+            document.getElementById('cat-icon').src = icon;
+        }
+
+        function goBack() {
+            // Возвращаем всё назад
+            document.getElementById('home-screen').style.display = 'block';
+            document.getElementById('category-screen').style.display = 'none';
+            
+            document.getElementById('back-btn').style.display = 'none';
+            document.getElementById('main-title').innerText = 'admin';
+            document.getElementById('sub-title').innerText = 'ГОРОД В ТВОЕМ КАРМАНЕ';
+        }
+
+        // Будущая функция для подгрузки данных из таблицы
+        async function loadData() {
+            if(SHEET_ID === 'ВСТАВЬ_СЮДА_ID_ТАБЛИЦЫ') return;
             try {
-                // 1. Загружаем Кнопки (Лист1)
-                const resBtn = await fetch(`https://opensheet.elk.sh{SHEET_ID}/Лист1`);
-                const buttons = await resBtn.json();
-                buttons.forEach(row => {
-                    const card = document.getElementById(row.id);
-                    if (card) {
-                        if (row.title) card.querySelector('span').innerText = row.title;
-                        if (row.icon) card.querySelector('img').src = row.icon;
-                    }
-                });
-
-                // 2. Загружаем СТОРИС (Лист "Stories")
-                const resStories = await fetch(`https://opensheet.elk.sh{SHEET_ID}/Stories`);
-                const stories = await resStories.json();
-                const list = document.getElementById('stories-list');
-                list.innerHTML = ''; 
-                stories.forEach(s => {
-                    list.innerHTML += `
-                        <div class="story" onclick="window.open('${s.link}', '_blank')">
-                            <div class="story-ring"><img src="${s.image}"></div>
-                            <span>${s.title}</span>
-                        </div>`;
-                });
-            } catch (e) {
-                console.log("Ожидание данных из таблицы...");
-            }
+                const res = await fetch(`https://opensheet.elk.sh{SHEET_ID}/Stories`);
+                const stories = await res.json();
+                // Логика обновления сторис...
+            } catch (e) { console.log("Подключение таблицы..."); }
         }
-
-        function sendIdea() {
-            const idea = prompt("Опишите вашу идею для города:");
-            if (idea) {
-                let myIdeas = JSON.parse(localStorage.getItem('my_ideas')) || [];
-                myIdeas.push(idea);
-                localStorage.setItem('my_ideas', JSON.stringify(myIdeas));
-                alert("Идея сохранена в памяти вашего телефона!");
-            }
-        }
-
-        // Запуск при загрузке
-        window.onload = loadAppData;
+        loadData();
     </script>
 </body>
 </html>
