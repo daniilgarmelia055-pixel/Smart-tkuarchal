@@ -5,138 +5,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Smart Tkuarchal</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
+        :root { --primary: #2563eb; --bg: #f8fafc; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
         
-        /* Шапка с запасом высоты */
-        header { padding: 40px 20px 60px; background: var(--primary); color: white; border-radius: 0 0 40px 40px; text-align: center; position: relative; z-index: 1; }
-        header h1 { margin: 0; font-size: 26px; text-transform: lowercase; }
+        /* Простая шапка без наложений */
+        header { padding: 30px 20px; background: var(--primary); color: white; text-align: center; }
+        
+        /* Погода просто блоком ниже */
+        .weather-box { background: white; margin: 15px; padding: 15px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .temp { font-size: 28px; font-weight: 800; color: var(--primary); }
 
-        /* Погода без наложения на кнопки */
-        .weather-card { background: white; margin: -30px 20px 20px; padding: 20px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; }
-        .temp { font-size: 32px; font-weight: 800; color: var(--primary); }
-
-        /* Кнопки — САМЫЙ ВЕРХНИЙ СЛОЙ */
-        .grid { 
+        /* СЕТКА КНОПОК - МАКСИМАЛЬНАЯ ДОСТУПНОСТЬ */
+        .main-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            padding: 0 20px; 
-            position: relative; 
-            z-index: 9999; /* Вытащили кнопки на передний план */
-            margin-top: 10px;
+            gap: 12px; 
+            padding: 15px; 
+            position: relative;
+            z-index: 1000; /* Гарантируем, что кнопки сверху */
         }
 
-        .card { 
-            background: white; 
+        .btn-card { 
+            background: #ffffff; 
             padding: 25px 10px; 
-            border-radius: 25px; 
+            border-radius: 20px; 
             text-align: center; 
             font-weight: 700; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08); 
+            border: 2px solid #e2e8f0; /* Сделаем рамку, чтобы видеть границы */
             cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            border: 1px solid #f1f5f9;
+            display: block; /* Чтобы кнопка занимала все место */
+            -webkit-appearance: none;
         }
 
-        .card:active { transform: scale(0.95); background: #f8fafc; }
+        .btn-card:active { background: #e2e8f0; transform: scale(0.95); }
 
-        /* Контент */
-        #content-list { padding: 20px; position: relative; z-index: 10; }
-        .item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; border-left: 5px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        
-        .loader { text-align: center; padding: 20px; color: #94a3b8; font-size: 14px; }
+        /* Список */
+        #data-container { padding: 15px; }
+        .data-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .status { text-align: center; padding: 20px; color: #64748b; font-style: italic; }
 
-        /* SOS Модалка */
-        #modal-sos { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: flex-end; }
-        .modal-body { background: white; width: 100%; padding: 30px 20px; border-radius: 30px 30px 0 0; }
-        .sos-btn { display: flex; justify-content: space-between; padding: 18px; background: #fff1f2; margin-bottom: 10px; border-radius: 15px; color: #e11d48; text-decoration: none; font-weight: 800; }
+        /* SOS */
+        #sos-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: flex-end; }
+        .sos-content { background: white; width: 100%; padding: 25px; border-radius: 25px 25px 0 0; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-<header><h1>tkuarchal</h1></header>
+<header>
+    <h1>tkuarchal</h1>
+</header>
 
-<div class="weather-card">
-    <div><div style="font-size: 12px; color: #94a3b8;">ПОГОДА</div><div class="temp" id="temp">--°C</div></div>
-    <div style="font-size: 40px;">☀️</div>
+<div class="weather-box">
+    <div><div style="font-size: 11px; color: #94a3b8;">ПОГОДА</div><div class="temp" id="t-val">--°C</div></div>
+    <div style="font-size: 35px;">☀️</div>
 </div>
 
-<div class="grid">
-    <!-- Если экран битый, кнопки здесь нажиматься ДОЛЖНЫ -->
-    <div class="card" onclick="openSOS()" style="color: #e11d48;">🚨 SOS</div>
-    <div class="card" onclick="loadData('tourism')">🏔️ Туризм</div>
-    <div class="card" onclick="loadData('sport')">⚽ Спорт</div>
-    <div class="card" onclick="loadData('Службы')">📞 Службы</div>
+<div class="main-grid">
+    <!-- Используем новые классы и явные onclick -->
+    <div class="btn-card" style="color: #ef4444; border-color: #fecaca;" onclick="openEmergency()">🚨 SOS</div>
+    <div class="btn-card" onclick="getData('tourism')">🏔️ Туризм</div>
+    <div class="btn-card" onclick="getData('sport')">⚽ Спорт</div>
+    <div class="btn-card" onclick="getData('Службы')">📞 Службы</div>
 </div>
 
-<div id="content-list"></div>
+<div id="data-container">
+    <div class="status">Нажмите кнопку для загрузки...</div>
+</div>
 
-<div id="modal-sos" onclick="closeSOS()">
-    <div class="modal-body" onclick="event.stopPropagation()">
-        <h2 style="color: #e11d48; margin-top: 0;">Помощь</h2>
+<div id="sos-overlay" onclick="this.style.display='none'">
+    <div class="sos-content" onclick="event.stopPropagation()">
+        <h2 style="color: #ef4444;">Службы спасения</h2>
         <div id="sos-list"></div>
-        <button onclick="closeSOS()" style="width: 100%; padding: 15px; border-radius: 15px; border: none; background: #f1f5f9; font-weight: 700;">ЗАКРЫТЬ</button>
+        <button onclick="document.getElementById('sos-overlay').style.display='none'" style="width: 100%; padding: 15px; border-radius: 10px; border: none; background: #f1f5f9; font-weight: 700; margin-top: 15px;">ЗАКРЫТЬ</button>
     </div>
 </div>
 
 <script>
-    // Твоя проверенная ссылка
-    const APP_URL = "https://script.google.com";async function fetchWeather() {
-        try {
-            const res = await fetch("https://api.open-meteo.com");
-            const data = await res.json();
-            document.getElementById('temp').innerText = Math.round(data.current_weather.temperature) + "°C";
-        } catch (e) { console.log("Weather error"); }
-    }
+    const EXEC_URL = "https://script.google.com";
 
-    async function loadData(tabName) {
-        // Проверка: работает ли клик вообще (если битый экран)
-        console.log("Запрос категории: " + tabName);
-        
-        const container = document.getElementById('content-list');
-        container.innerHTML = '<div class="loader">Связь с таблицей...</div>';
-        
-        try {
-            const res = await fetch(${APP_URL}?type=${encodeURIComponent(tabName)});
-            const data = await res.json();
-            container.innerHTML = '';
+    // Функция загрузки
+    async function getData(category) {
+        const box = document.getElementById('data-container');
+        box.innerHTML = <div class="status">⏳ Загружаю "${category}"...</div>;try {
+            const response = await fetch(${EXEC_URL}?type=${encodeURIComponent(category)});
+            const json = await response.json();
             
-            if (data && data.length > 0) {
-                data.forEach(item => {
+            box.innerHTML = '';
+            if (json && json.length > 0) {
+                json.forEach(item => {
                     const v = Object.values(item);
-                    container.innerHTML += 
-                        <div class="item">
-                            <h4 style="margin:0 0 5px">${v[0] || 'Инфо'}</h4>
-                            <p style="margin:0; color:#64748b; font-size:14px">${v[1] || ''}</p>
-                        </div>;
+                    box.innerHTML += <div class="data-item"><b>${v[0]}</b><br><small style="color: #64748b">${v[1] || ''}</small></div>;
                 });
             } else {
-                container.innerHTML = <div class="loader">Вкладка "${tabName}" пуста или не найдена.</div>;
+                box.innerHTML = <div class="status">❌ Вкладка "${category}" пуста или не найдена.</div>;
             }
-        } catch (e) {
-            container.innerHTML = '<div class="loader">Ошибка. Проверьте интернет или Deploy.</div>';
+        } catch (err) {
+            box.innerHTML = '<div class="status">⚠️ Ошибка соединения с таблицей.</div>';
         }
     }
 
-    async function openSOS() {
-        document.getElementById('modal-sos').style.display = 'flex';
-        const list = document.getElementById('sos-list');
-        list.innerHTML = '<div class="loader">Загрузка...</div>';
+    // Погода
+    async function getW() {
         try {
-            const res = await fetch(${APP_URL}?type=Службы);
-            const data = await res.json();
-            list.innerHTML = '';
-            data.forEach(item => {
-                const v = Object.values(item);
-                list.innerHTML += <a href="tel:${v[1]}" class="sos-btn"><span>${v[0]}</span><span>${v[1]} 📞</span></a>;
-            });
-        } catch (e) { list.innerHTML = '<div class="loader">Ошибка связи</div>'; }
+            const r = await fetch("https://api.open-meteo.com");
+            const d = await r.json();
+            document.getElementById('t-val').innerText = Math.round(d.current_weather.temperature) + "°C";
+        } catch (e) {}
     }
 
-    function closeSOS() { document.getElementById('modal-sos').style.display = 'none'; }
+    // SOS
+    async function openEmergency() {
+        document.getElementById('sos-overlay').style.display = 'flex';
+        const sList = document.getElementById('sos-list');
+        sList.innerHTML = '<div class="status">Загрузка номеров...</div>';
+        try {
+            const r = await fetch(${EXEC_URL}?type=Службы);
+            const j = await r.json();
+            sList.innerHTML = '';
+            j.forEach(item => {
+                const v = Object.values(item);
+                sList.innerHTML += <a href="tel:${v[1]}" style="display: block; padding: 15px; background: #fff1f2; margin-bottom: 8px; border-radius: 10px; color: #e11d48; text-decoration: none; font-weight: 700;">${v[0]}: ${v[1]} 📞</a>;
+            });
+        } catch (e) { sList.innerHTML = 'Ошибка'; }
+    }
 
-    window.onload = () => { fetchWeather(); loadData('tourism'); };
+    window.onload = () => { getW(); getData('tourism'); };
 </script>
+
 </body>
 </html>
