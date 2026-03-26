@@ -183,16 +183,4 @@
         try {
             const res = await fetch(${APP_URL}?type=${encodeURIComponent('Службы')});
             const data = await res.json();
-            list.innerHTML = '';data.forEach(item => {
-                const v = Object.values(item);
-                list.innerHTML += <a href="tel:${v[1]}" class="sos-btn"><span>${v[0]}</span><span>${v[1]} 📞</span></a>;
-            });
-        } catch (e) { list.innerHTML = '<div class="loader">Ошибка сети</div>'; }
-    }
-
-    function closeSOS() { document.getElementById('modal-sos').style.display = 'none'; }
-
-    window.onload = () => { fetchWeather(); loadData('tourism'); };
-</script>
-</body>
-</html>
+            list.innerHTML = '';
