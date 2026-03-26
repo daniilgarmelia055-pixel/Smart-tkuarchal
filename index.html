@@ -2,212 +2,107 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AdminCity - Ткуарчал</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City App Admin</title>
     <style>
-        body { background-color: #f8faff; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        .header-blue { background: #4342cf; border-radius: 0 0 45px 45px; }
-        .menu-card { background: white; border-radius: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.03); transition: 0.2s; border: 1px solid #f1f5f9; }
-        .menu-card:active { transform: scale(0.95); background: #f8faff; }
-        .menu-card i { font-size: 28px; }
-        .menu-card span { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #1e293b; }
-        .admin-panel { display: none; position: fixed; inset: 0; background: white; z-index: 1000; padding: 25px; overflow-y: auto; }
-        .nav-bar { background: white; height: 85px; display: flex; justify-content: space-around; align-items: center; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
+        body { font-family: 'Inter', sans-serif; background: #f8f9ff; margin: 0; padding-bottom: 90px; }
+        
+        /* Шапка */
+        .header { background: linear-gradient(135deg, #4b39ef 0%, #39d2c0 100%); padding: 30px 20px 50px; border-bottom-radius: 40px; color: white; border-radius: 0 0 40px 40px; }
+        .header h1 { margin: 0; font-size: 24px; text-transform: lowercase; }
+        .header p { margin: 0; font-size: 10px; opacity: 0.8; letter-spacing: 1px; }
+
+        /* ЛЕНТА СТОРИС (КАК В ИНСТЕ) */
+        .stories-container { display: flex; overflow-x: auto; padding: 20px; gap: 15px; scrollbar-width: none; }
+        .stories-container::-webkit-scrollbar { display: none; }
+        .story { min-width: 70px; text-align: center; cursor: pointer; }
+        .story-ring { width: 66px; height: 66px; border-radius: 50%; background: linear-gradient(#fff, #fff) padding-box, linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) border-box; border: 3px solid transparent; display: flex; align-items: center; justify-content: center; }
+        .story img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+        .story span { font-size: 10px; color: #333; margin-top: 5px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Погода */
+        .weather { background: white; margin: 0 20px 20px; padding: 20px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.03); }
+        .weather-info div { font-size: 32px; font-weight: 800; }
+
+        /* Кнопки */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
+        .card { background: white; border-radius: 35px; padding: 25px 10px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.03); }
+        .card img { width: 45px; height: 45px; margin-bottom: 12px; }
+        .card span { font-weight: 800; font-size: 13px; color: #333; }
+
+        /* Нижнее меню */
+        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-radius: 25px 25px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
-<body class="pb-32">
+<body>
 
-    <!-- ШАПКА -->
-    <div class="header-blue p-8 pb-14 text-white relative shadow-2xl">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold italic uppercase tracking-tighter">admin</h1>
-                <p class="text-blue-200 text-[10px] font-bold uppercase tracking-[2px]">Город в твоем кармане</p>
-            </div>
-            <button onclick="checkAdmin()" class="bg-white/10 w-10 h-10 rounded-2xl flex items-center justify-center border border-white/20">
-                <i class="fa-solid fa-gear text-sm opacity-50"></i>
-            </button>
+    <div class="header">
+        <h1>admin</h1>
+        <p>ГОРОД В ТВОЕМ КАРМАНЕ</p>
+    </div>
+
+    <!-- СЮДА БУДУТ ПОДГРУЖАТЬСЯ СТОРИС -->
+    <div class="stories-container" id="stories-list">
+        <!-- Пример одной сторис (потом удалится само) -->
+        <div class="story">
+            <div class="story-ring"><img src="https://via.placeholder.com"></div>
+            <span>загрузка...</span>
         </div>
     </div>
 
-    <!-- ПОГОДА -->
-    <div class="mx-6 -mt-8 bg-white p-5 rounded-[30px] shadow-xl flex justify-between items-center border border-blue-50">
-        <div>
-            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Погода Ткуарчал</p>
-            <div class="flex items-center">
-                <span class="text-3xl font-black text-slate-800">24</span>
-                <span class="text-xl font-bold text-blue-600 ml-1">°C</span>
-            </div>
+    <div class="weather">
+        <div class="weather-info">
+            <small style="color:#aaa">ПОГОДА ТКУАРЧАЛ</small>
+            <div>24°C</div>
         </div>
-        <i class="fa-solid fa-sun text-4xl text-yellow-400"></i>
+        <img src="https://img.icons8.com" width="50">
     </div>
 
-    <!-- СЕТКА КНОПОК МЕНЮ -->
-    <div class="grid grid-cols-2 gap-4 p-6 mt-2">
-        <div onclick="openSection('tourism')" class="menu-card">
-            <i class="fa-solid fa-mountain-sun text-blue-400"></i>
-            <span>Туризм</span>
-        </div>
-        <div onclick="openTaxi()" class="menu-card">
-            <i class="fa-solid fa-taxi text-yellow-500"></i>
-            <span>Такси</span>
-        </div>
-        <div onclick="openSection('bus')" class="menu-card">
-            <i class="fa-solid fa-bus text-indigo-500"></i>
-            <span>Рейсы</span>
-        </div>
-        <div onclick="openSection('sports')" class="menu-card">
-            <i class="fa-solid fa-trophy text-orange-400"></i>
-            <span>Спорт</span>
-        </div>
-        <div onclick="alert('Раздел ЖКХ в разработке')" class="menu-card">
-            <i class="fa-solid fa-house-chimney text-emerald-500"></i>
-            <span>ЖКХ</span>
-        </div>
-        <div onclick="alert('Раздел объявлений скоро появится')" class="menu-card">
-            <i class="fa-solid fa-rectangle-ad text-rose-400"></i>
-            <span>Объявления</span>
-        </div>
-
-        <!-- Кнопка ИДЕЯ -->
-        <button onclick="addIdea()" class="col-span-2 bg-blue-50 py-5 rounded-[25px] flex items-center justify-center gap-3 border border-blue-100 mt-2">
-            <span class="text-xl">💡</span>
-            <span class="text-[11px] font-black text-blue-800 uppercase tracking-widest">Есть идея для города?</span>
-        </button>
+    <div class="grid">
+        <div class="card" id="tourism"><img src="https://img.icons8.com"><span>ТУРИЗМ</span></div>
+        <div class="card" id="taxi"><img src="https://img.icons8.com"><span>ТАКСИ</span></div>
+        <div class="card" id="flights"><img src="https://img.icons8.com"><span>РЕЙСЫ</span></div>
+        <div class="card" id="sport"><img src="https://img.icons8.com"><span>СПОРТ</span></div>
     </div>
 
-    <!-- КОНТЕНТ (ЛЕНТА) -->
-    <div id="content-view" class="px-6 hidden">
-        <div class="flex justify-between items-center mb-6">
-            <h2 id="view-title" class="text-xl font-black uppercase italic">Раздел</h2>
-            <button onclick="closeSection()" class="text-gray-400 font-bold uppercase text-[10px]">Назад</button>
-        </div>
-        <div id="feed-list" class="space-y-6"></div>
-    </div>
-
-    <!-- НИЖНЕЕ МЕНЮ (5 КНОПОК) -->
-    <div class="fixed bottom-0 left-0 right-0 nav-bar z-50">
-        <div onclick="location.reload()" class="text-indigo-600"><i class="fa-solid fa-house text-xl"></i></div>
-        <div onclick="addIdea()" class="text-yellow-400"><i class="fa-solid fa-lightbulb text-xl"></i></div>
-        
-        <!-- ЦЕНТРАЛЬНЫЙ ПЛЮС -->
-        <div onclick="checkAdmin()" class="bg-[#4342cf] w-16 h-16 rounded-[22px] flex items-center justify-center -mt-12 border-[6px] border-[#f8faff] shadow-2xl text-white">
-            <i class="fa-solid fa-plus text-2xl"></i>
-        </div>
-        
-        <div class="text-gray-300"><i class="fa-solid fa-newspaper text-xl"></i></div>
-        <div class="text-gray-300"><i class="fa-solid fa-user text-xl"></i></div>
-    </div>
-
-    <!-- АДМИНКА -->
-    <div id="admin-panel" class="admin-panel">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-black">Настройки</h2>
-            <button onclick="closeAdmin()" class="text-3xl text-gray-300">&times;</button>
-        </div>
-        <div class="space-y-4">
-            <select id="a-type" class="w-full bg-gray-100 p-5 rounded-3xl font-bold">
-                <option value="tourism">ДОБАВИТЬ В ТУРИЗМ</option>
-                <option value="sports">ДОБАВИТЬ В СПОРТ</option>
-                <option value="taxi">ОБНОВИТЬ НОМЕР ТАКСИ</option>
-            </select>
-            <input id="a-title" type="text" placeholder="Имя / Название" class="w-full bg-gray-100 p-5 rounded-3xl">
-            <textarea id="a-desc" placeholder="Описание" class="w-full bg-gray-100 p-5 rounded-3xl h-24"></textarea>
-            <input id="a-phone" type="tel" placeholder="Номер телефона" class="w-full bg-gray-100 p-5 rounded-3xl">
-            <input type="file" id="a-file" class="hidden">
-            <button onclick="document.getElementById('a-file').click()" class="w-full border-2 border-dashed p-8 rounded-3xl text-gray-400 font-bold uppercase text-[10px]">Выбрать фото</button>
-            <button onclick="saveData()" class="w-full bg-[#4342cf] text-white py-5 rounded-3xl font-black uppercase">Сохранить</button>
-            
-            <div class="mt-10 pt-10 border-t border-gray-100">
-                <h3 class="text-xs font-bold text-gray-400 mb-4 uppercase">Идеи жителей:</h3>
-                <div id="admin-ideas"></div>
-            </div>
-        </div>
+    <div class="nav">
+        <img src="https://img.icons8.com" width="26">
+        <img src="https://img.icons8.com" width="26">
+        <img src="https://img.icons8.com" width="26">
+        <img src="https://img.icons8.com" width="26">
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('admin_city_db')) || { 
-            tourism: [], sports: [], ideas: [], taxi: "+7 (940) 000-00-00" 
-        };
+        const SHEET_ID = 'ВСТАВЬ_СЮДА_ID_ТАБЛИЦЫ'; 
 
-        function sync() {
-            localStorage.setItem('admin_city_db', JSON.stringify(db));
-            render();
+        async function initApp() {
+            try {
+                // Загружаем кнопки (Лист1)
+                const resBtn = await fetch(`https://opensheet.elk.sh{SHEET_ID}/Лист1`);
+                const buttons = await resBtn.json();
+                buttons.forEach(row => {
+                    const card = document.getElementById(row.id);
+                    if (card) {
+                        if(row.title) card.querySelector('span').innerText = row.title;
+                        if(row.icon) card.querySelector('img').src = row.icon;
+                    }
+                });
+
+                // Загружаем СТОРИС (Stories)
+                const resStories = await fetch(`https://opensheet.elk.sh{SHEET_ID}/Stories`);
+                const stories = await resStories.json();
+                const list = document.getElementById('stories-list');
+                list.innerHTML = ''; // очистка
+                stories.forEach(s => {
+                    list.innerHTML += `
+                        <div class="story" onclick="window.open('${s.link}')">
+                            <div class="story-ring"><img src="${s.image}"></div>
+                            <span>${s.title}</span>
+                        </div>`;
+                });
+            } catch (e) { console.log("Обновление..."); }
         }
-
-        function openSection(type) {
-            document.querySelector('.grid').classList.add('hidden');
-            document.getElementById('content-view').classList.remove('hidden');
-            document.getElementById('view-title').innerText = type === 'tourism' ? 'Туризм' : 'Спорт';
-            render(type);
-        }
-
-        function closeSection() {
-            document.querySelector('.grid').classList.remove('hidden');
-            document.getElementById('content-view').classList.add('hidden');
-        }
-
-        function render(type = 'tourism') {
-            const list = document.getElementById('feed-list');
-            if(!list) return;
-            list.innerHTML = '';
-            db[type].forEach((item, i) => {
-                list.innerHTML += `
-                    <div class="bg-white rounded-[35px] overflow-hidden shadow-lg border border-gray-100">
-                        <img src="${item.img}" class="w-full h-64 object-cover">
-                        <div class="p-6">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="text-xl font-black uppercase italic">${item.title}</h3>
-                                <button onclick="like('${type}', ${i})" class="bg-rose-50 text-rose-500 px-4 py-2 rounded-2xl font-bold flex items-center gap-2">
-                                    <i class="fa-solid fa-heart"></i> ${item.likes || 0}
-                                </button>
-                            </div>
-                            <p class="text-gray-400 text-sm mb-5">${item.desc}</p>
-                            ${item.phone ? `<a href="tel:${item.phone}" class="block bg-indigo-600 text-white text-center py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest">Позвонить</a>` : ''}
-                        </div>
-                    </div>`;
-            });
-
-            // Идеи в админке
-            const idBox = document.getElementById('admin-ideas');
-            idBox.innerHTML = '';
-            db.ideas.forEach(id => idBox.innerHTML += `<div class="bg-gray-50 p-4 rounded-2xl mb-2 text-xs text-gray-500 italic">"${id}"</div>`);
-        }
-
-        window.openTaxi = () => alert("Такси Ткуарчал: " + db.taxi);
-        window.checkAdmin = () => { if(prompt("Пароль:") === "777") document.getElementById('admin-panel').style.display = 'block'; };
-        window.closeAdmin = () => document.getElementById('admin-panel').style.display = 'none';
-
-        window.saveData = () => {
-            const type = document.getElementById('a-type').value;
-            const title = document.getElementById('a-title').value;
-            const file = document.getElementById('a-file').files[0];
-            const phone = document.getElementById('a-phone').value;
-
-            if(type === 'taxi') {
-                db.taxi = phone; sync(); alert("Номер такси изменен!"); closeAdmin(); return;
-            }
-
-            if(!file || !title) return alert("Нужно фото и заголовок!");
-
-            const r = new FileReader();
-            r.onload = (e) => {
-                db[type].unshift({ title: title.toUpperCase(), desc: document.getElementById('a-desc').value, phone, img: e.target.result, likes: 0 });
-                sync(); closeAdmin(); alert("Готово!");
-            };
-            r.readAsDataURL(file);
-        };
-
-        window.addIdea = () => {
-            const text = prompt("Ваша идея для города:");
-            if(text) { db.ideas.unshift(text); sync(); alert("Идея отправлена!"); }
-        };
-
-        window.like = (type, i) => { db[type][i].likes = (db[type][i].likes || 0) + 1; sync(); render(type); };
-
-        render();
+        initApp();
     </script>
 </body>
 </html>
