@@ -2,348 +2,189 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Tkuarchal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminCity - Голос Города</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
     <style>
-        body { -webkit-tap-highlight-color: transparent; font-family: ui-sans-serif, system-ui; background-color: #f9fafb; }
-        .page { display: none; min-height: 100vh; }
-        .page.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-show { transform: translateY(0) !important; opacity: 1 !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .img-card { transition: all 0.3s ease; }
-        .img-card:active { transform: scale(0.97); opacity: 0.9; }
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .card { background: white; border-radius: 30px; overflow: hidden; shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .like-btn { transition: all 0.3s ease; }
+        .like-btn:active { transform: scale(1.4); color: #ef4444; }
+        .admin-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; color: white; overflow-y: auto; }
     </style>
 </head>
 <body class="pb-32">
 
-    <!-- HEADER -->
-    <div class="bg-indigo-700 p-6 pb-12 text-white flex justify-between items-center rounded-b-[45px] shadow-xl fixed top-0 inset-x-0 z-40 border-b border-indigo-500/20">
-        <div>
-            <h1 id="header-user" class="text-2xl font-black tracking-tight italic">Smart Tkuarchal</h1>
-            <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest opacity-70">Город в твоем кармане</p>
-        </div>
-        <div class="flex gap-2">
-            <button id="admin-btn" onclick="openAdmin()" class="hidden bg-yellow-400 p-3 rounded-2xl shadow-lg active:rotate-12 transition">⚙️</button>
-            <div onclick="alert('Уведомлений пока нет')" class="bg-indigo-600/50 p-3 rounded-2xl backdrop-blur-md text-xl active:scale-90 transition">🔔</div>
-        </div>
-    </div>
-
-    <!-- 1. ГЛАВНАЯ СТРАНИЦА -->
-    <main id="home" class="page active px-6 pt-36 space-y-6">
-        <!-- КАРТОЧКА ПОСЛЕДНЕЙ НОВОСТИ -->
-        <div onclick="showPage('feed')" class="bg-gradient-to-br from-indigo-600 to-blue-500 p-7 rounded-[40px] text-white shadow-lg active:scale-95 transition relative overflow-hidden">
-            <p class="text-[10px] uppercase font-bold opacity-60 mb-1">События города</p>
-            <h2 id="last-news-title" class="text-lg font-bold leading-tight">Загрузка последних известий...</h2>
-            <div class="mt-4 inline-flex items-center gap-2 text-[9px] bg-white/20 px-4 py-2 rounded-full uppercase font-black">
-                Открыть ленту <span class="text-xs">→</span>
-            </div>
-        </div>
-
-        <!-- ПОГОДА (API Open-Meteo) -->
-        <div class="bg-white p-6 rounded-[40px] shadow-sm border border-gray-100 flex justify-between items-center">
+    <!-- ШАПКА -->
+    <div class="bg-indigo-700 p-8 text-white rounded-b-[45px] shadow-2xl mb-8">
+        <div class="flex justify-between items-center">
             <div>
-                <p class="text-gray-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Погода Ткуарчал</p>
-                <div class="flex items-end gap-2">
-                    <h2 id="temp" class="text-4xl font-black text-gray-800">--°C</h2>
-                    <span id="desc" class="text-gray-400 text-sm mb-1 pb-1 italic font-medium">обновление...</span>
-                </div>
+                <h1 class="text-3xl font-black italic tracking-tighter">admin</h1>
+                <p class="text-[10px] opacity-70 font-bold uppercase tracking-widest">Твой город • Твой выбор</p>
             </div>
-            <div id="icon" class="text-5xl drop-shadow-md">☀️</div>
+            <button onclick="openAdmin()" class="bg-white/20 p-4 rounded-3xl backdrop-blur-md">
+                <i class="fa-solid fa-sliders text-white"></i>
+            </button>
         </div>
+    </div>
 
-        <!-- СЕТКА СЕРВИСОВ -->
-        <div class="grid grid-cols-2 gap-4">
-            <div onclick="showPage('tourism')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition">
-                <div class="text-3xl mb-2">🏔️</div>
-                <span class="text-gray-800 font-black text-[11px] uppercase tracking-widest italic">Туризм</span>
-            </div>
-            <div onclick="openModal('taxi')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition">
-                <div class="text-3xl mb-2">🚕</div>
-                <span class="text-gray-800 font-black text-[11px] uppercase tracking-widest italic">Такси</span>
-            </div>
-            <div onclick="openModal('transport')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition">
-                <div class="text-3xl mb-2">🚌</div>
-                <span class="text-gray-800 font-black text-[11px] uppercase tracking-widest italic">Рейсы</span>
-            </div>
-            <div onclick="showPage('sports')" class="bg-white p-6 rounded-[40px] text-center shadow-sm border border-gray-100 active:scale-95 transition">
-                <div class="text-3xl mb-2">🏆</div>
-                <span class="text-gray-800 font-black text-[11px] uppercase tracking-widest italic">Спорт</span>
-            </div>
-        </div>
-        
-        <button onclick="openModal('ideas')" class="w-full py-5 bg-indigo-50 text-indigo-600 rounded-[35px] font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition">
-            💡 Есть идея для города?
+    <!-- МЕНЮ -->
+    <div class="flex px-6 gap-4 mb-8">
+        <button onclick="switchTab('tourism')" class="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-indigo-50 flex flex-col items-center">
+            <i class="fa-solid fa-camera-retro text-2xl text-indigo-500 mb-1"></i>
+            <span class="text-[10px] font-black uppercase">Туризм</span>
         </button>
-    </main>
-
-    <!-- 2. ЛЕНТА НОВОСТЕЙ (ВЕРТИКАЛЬНАЯ) -->
-    <main id="feed" class="page px-6 pt-36 pb-10 space-y-6">
-        <h2 class="text-2xl font-black text-gray-800 mb-2 italic">Лента событий</h2>
-        <div id="vertical-feed" class="space-y-6"></div>
-    </main>
-
-    <!-- 3. ТУРИЗМ (ГАЛЕРЕЯ) -->
-    <main id="tourism" class="page px-6 pt-36 pb-10 space-y-6">
-        <h2 class="text-2xl font-black text-gray-800 mb-2 italic">Достопримечательности</h2>
-        <div id="tourism-list" class="space-y-6"></div>
-    </main>
-
-    <!-- 4. СПОРТ (ДОСКА ПОЧЕТА) -->
-    <main id="sports" class="page px-6 pt-36 pb-10 space-y-6">
-        <h2 class="text-2xl font-black text-gray-800 mb-2 italic tracking-tighter">Гордость Ткуарчала</h2>
-        <div id="sports-list" class="space-y-4"></div>
-    </main>
-
-    <!-- 5. ПРОФИЛЬ -->
-    <main id="profile" class="page px-6 pt-40 text-center">
-        <div id="login-box" class="bg-white p-10 rounded-[45px] shadow-sm border border-gray-100">
-            <div class="text-6xl mb-6">👋</div>
-            <h2 class="text-2xl font-black mb-6 text-gray-800 italic uppercase">Вход</h2>
-            <input type="text" id="name-in" placeholder="Твое имя" class="w-full p-5 bg-gray-50 rounded-[25px] border-none mb-6 outline-none focus:ring-2 focus:ring-indigo-500 text-center font-black text-lg">
-            <button onclick="login()" class="w-full bg-indigo-600 text-white p-5 rounded-[25px] font-black shadow-lg uppercase tracking-widest active:scale-95 transition">Поехали</button>
-        </div>
-        <div id="user-box" class="hidden">
-            <div class="w-28 h-28 bg-gradient-to-tr from-indigo-100 to-white rounded-full mx-auto mb-6 flex items-center justify-center text-5xl shadow-inner border-4 border-white">👤</div>
-            <h2 id="u-name" class="text-3xl font-black text-gray-800 italic underline decoration-indigo-500 decoration-8 underline-offset-4">Гость</h2>
-            <p class="text-gray-400 text-xs mt-4 uppercase font-bold tracking-widest">Твой аккаунт активен</p>
-            <button onclick="logout()" class="mt-24 w-full text-red-500 font-black uppercase text-[10px] tracking-[0.3em] py-5 bg-red-50 rounded-[30px] active:scale-95 transition">Выйти из профиля</button>
-        </div>
-    </main>
-
-    <!-- НИЖНЕЕ МЕНЮ -->
-    <nav class="fixed bottom-6 inset-x-6 bg-white/90 backdrop-blur-2xl border border-white/20 h-20 rounded-[35px] shadow-2xl flex justify-around items-center z-50 px-2">
-        <button onclick="showPage('home')" class="p-4 active:scale-125 transition text-2xl">🏠</button>
-        <button onclick="showPage('feed')" class="p-4 active:scale-125 transition text-2xl">📰</button>
-        <button onclick="showPage('tourism')" class="p-4 active:scale-125 transition text-2xl">📸</button>
-        <button onclick="showPage('sports')" class="p-4 active:scale-125 transition text-2xl">🏆</button>
-        <button onclick="showPage('profile')" class="p-4 active:scale-125 transition text-2xl">👤</button>
-    </nav>
-
-    <!-- МОДАЛЬНОЕ ОКНО -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/70 z-[60] hidden backdrop-blur-sm flex items-end transition-all">
-        <div id="modal-box" class="bg-white w-full rounded-t-[55px] p-8 translate-y-full transition-transform duration-300 shadow-2xl">
-            <div class="flex justify-between items-center mb-8">
-                <h3 id="modal-title" class="text-xl font-black text-gray-800 italic uppercase">ИНФО</h3>
-                <button onclick="closeModal()" class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-black">✕</button>
-            </div>
-            <div id="modal-body" class="max-h-[60vh] overflow-y-auto no-scrollbar space-y-4"></div>
-        </div>
+        <button onclick="switchTab('athletes')" class="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-indigo-50 flex flex-col items-center">
+            <i class="fa-solid fa-medal text-2xl text-orange-400 mb-1"></i>
+            <span class="text-[10px] font-black uppercase">Спорт</span>
+        </button>
     </div>
 
-    <!-- ПАНЕЛЬ АДМИНИСТРАТОРА -->
-    <div id="admin-modal" class="fixed inset-0 bg-indigo-950/95 z-[70] hidden flex items-center p-6 backdrop-blur-xl">
-        <div class="bg-white w-full rounded-[45px] p-8 shadow-2xl space-y-6 overflow-y-auto max-h-[90vh] no-scrollbar">
-            <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-black text-gray-800 italic uppercase tracking-tighter">ПУЛЬТ ADMIN</h2>
-                <button onclick="closeAdmin()" class="text-gray-400 font-black">ЗАКРЫТЬ</button>
-            </div>
+    <!-- ЛЕНТА КОНТЕНТА -->
+    <div id="content-feed" class="px-6 space-y-8">
+        <!-- Сюда подгружаются карточки с лайками -->
+    </div>
+
+    <!-- АДМИНКА -->
+    <div id="admin-modal" class="admin-modal">
+        <div class="max-w-md mx-auto py-10 space-y-6">
+            <h2 class="text-2xl font-black text-yellow-400 uppercase italic">Панель Управления</h2>
             
-            <div class="p-6 bg-gray-50 rounded-[35px] space-y-4 border border-gray-100">
-                <p class="text-[10px] font-black uppercase text-indigo-500 tracking-widest">Добавить новость</p>
-                <textarea id="news-edit" class="w-full p-5 bg-white rounded-3xl outline-none font-bold text-sm shadow-sm" rows="3" placeholder="Что произошло?"></textarea>
-                <button onclick="saveAdminNews()" class="w-full bg-indigo-600 text-white p-5 rounded-3xl font-black text-[10px] tracking-widest shadow-lg active:scale-95 transition">ОПУБЛИКОВАТЬ ПОСТ</button>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="showSection('add')" class="bg-indigo-600 p-4 rounded-2xl font-bold text-[10px] uppercase">Добавить пост</button>
+                <button onclick="showSection('ideas')" class="bg-white/10 p-4 rounded-2xl font-bold text-[10px] uppercase">Идеи жителей</button>
             </div>
 
-            <div class="p-6 bg-orange-50 rounded-[35px] space-y-4 border border-orange-100">
-                <p class="text-[10px] font-black uppercase text-orange-600 tracking-widest">Добавить фото туризма</p>
-                <input id="t-url" placeholder="Ссылка на фото (URL)" class="w-full p-4 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm">
-                <input id="t-title" placeholder="Название места" class="w-full p-4 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm">
-                <button onclick="addTourismPhoto()" class="w-full bg-orange-500 text-white p-5 rounded-3xl font-black text-[10px] tracking-widest shadow-lg active:scale-95 transition">ДОБАВИТЬ В ГАЛЕРЕЮ</button>
+            <!-- Форма добавления -->
+            <div id="add-form" class="space-y-4 pt-6">
+                <select id="post-type" class="w-full p-5 rounded-2xl text-black font-bold outline-none">
+                    <option value="tourism">В раздел ТУРИЗМ</option>
+                    <option value="athletes">В раздел СПОРТ</option>
+                </select>
+                <input id="post-title" type="text" placeholder="Заголовок / Имя" class="w-full p-5 rounded-2xl text-black">
+                <textarea id="post-desc" placeholder="Описание" class="w-full p-5 rounded-2xl text-black h-24"></textarea>
+                <input id="post-phone" type="text" placeholder="Телефон для связи" class="w-full p-5 rounded-2xl text-black">
+                <input type="file" id="post-file" class="hidden" accept="image/*">
+                <button onclick="document.getElementById('post-file').click()" class="w-full border-2 border-dashed border-white/30 p-5 rounded-2xl text-sm font-bold italic">ВЫБРАТЬ ФОТОГРАФИЮ</button>
+                <button id="upload-btn" onclick="saveToFirebase()" class="w-full bg-green-500 p-5 rounded-2xl font-black uppercase shadow-lg">Опубликовать на сайте</button>
             </div>
 
-            <div class="p-6 bg-emerald-50 rounded-[35px] space-y-4 border border-emerald-100">
-                <p class="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Новый чемпион</p>
-                <input id="s-name" placeholder="Имя Фамилия" class="w-full p-4 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm">
-                <input id="s-sport" placeholder="Вид спорта" class="w-full p-4 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm">
-                <button onclick="addSportsman()" class="w-full bg-emerald-600 text-white p-5 rounded-3xl font-black text-[10px] tracking-widest shadow-lg active:scale-95 transition">ДОБАВИТЬ СПОРТСМЕНА</button>
-            </div>
+            <div id="ideas-list" class="hidden space-y-3"></div>
+
+            <button onclick="closeAdmin()" class="w-full text-gray-500 font-bold uppercase text-xs pt-10 tracking-widest italic">Вернуться назад</button>
         </div>
     </div>
 
-    <script>
-        // 1. СТАБИЛЬНАЯ ПОГОДА
-        async function loadWeather() {
-            try {
-                const res = await fetch('https://api.open-meteo.com');
-                const data = await res.json();
-                if(data && data.current_weather) {
-                    const temp = Math.round(data.current_weather.temperature);
-                    document.getElementById('temp').innerText = temp + '°C';
-                    document.getElementById('desc').innerText = temp > 12 ? "Отличный день" : "Свежо";
-                    document.getElementById('icon').innerText = temp > 18 ? '☀️' : (temp > 10 ? '⛅' : '☁️');
-                }
-            } catch(e) { document.getElementById('desc').innerText = "Оффлайн режим"; }
-        }
+    <!-- ТАББАР -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl p-6 flex justify-around items-center rounded-t-[40px] shadow-2xl border-t border-indigo-50">
+        <i onclick="location.reload()" class="fa-solid fa-house text-2xl text-indigo-600"></i>
+        <i onclick="sendIdea()" class="fa-solid fa-lightbulb text-2xl text-yellow-400"></i>
+        <div class="bg-indigo-600 p-4 rounded-3xl -mt-16 border-8 border-f8f9fa shadow-xl">
+            <i class="fa-solid fa-plus text-white text-xl"></i>
+        </div>
+        <i class="fa-solid fa-newspaper text-2xl text-gray-300"></i>
+        <i class="fa-solid fa-user text-2xl text-gray-300"></i>
+    </div>
 
-        // 2. НАВИГАЦИЯ
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, increment } from "https://www.gstatic.com";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com";
 
-        // 3. РЕНДЕР ТУРИЗМА (С ПРОВЕРКОЙ КАРТИНОК)
-        function renderTourism() {
-            const list = document.getElementById('tourism-list');
-            const defaultT = [
-                {url: "https://v-abkhazia.ru", title: "Водопад Святой"},
-                {url: "https://goru.travel", title: "Город-призрак Акармара"},
-                {url: "https://sputnik-abkhazia.info", title: "Ткуарчальский Мост"}
-            ];
-            const tourismData = JSON.parse(localStorage.getItem('tk_tourism') || JSON.stringify(defaultT));
-            list.innerHTML = tourismData.slice().reverse().map(t => `
-                <div class="bg-white rounded-[45px] shadow-sm border border-gray-100 overflow-hidden img-card">
-                    <img src="${t.url}" class="w-full h-64 object-cover" onerror="this.src='https://via.placeholder.com'">
-                    <div class="p-8">
-                        <h3 class="font-black text-gray-800 text-xl italic uppercase tracking-tight">${t.title}</h3>
-                    </div>
-                </div>
-            `).join('');
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBkQRzRB9_hx0m7J-kcD4w6nbn6MKZnzLs",
+            authDomain: "admincity-d8b19.firebaseapp.com",
+            projectId: "admincity-d8b19",
+            storageBucket: "admincity-d8b19.firebasestorage.app",
+            appId: "1:460229255692:web:e79d69328016f3ee4bc429"
+        };
 
-        // 4. РЕНДЕР НОВОСТЕЙ
-        function renderNews() {
-            const feed = document.getElementById('vertical-feed');
-            const lastTitle = document.getElementById('last-news-title');
-            const newsData = JSON.parse(localStorage.getItem('tk_news_list') || '[]');
-            if (newsData.length === 0) {
-                lastTitle.innerText = "Пока новостей нет. Загляни позже!";
-                feed.innerHTML = `<div class="text-center py-20 text-gray-300 font-black uppercase text-[10px] tracking-[0.4em]">Лента пуста</div>`;
-                return;
-            }
-            lastTitle.innerText = newsData[newsData.length - 1].text.substring(0, 55) + '...';
-            feed.innerHTML = newsData.slice().reverse().map(item => `
-                <div class="bg-white p-8 rounded-[45px] shadow-sm border border-gray-100 space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black uppercase text-indigo-500 bg-indigo-50 px-4 py-2 rounded-full tracking-widest">${item.date}</span>
-                        <div class="flex gap-4 text-gray-200 text-xl">❤️ 🗨️</div>
-                    </div>
-                    <p class="text-gray-800 text-lg leading-relaxed font-bold italic tracking-tight">${item.text}</p>
-                </div>
-            `).join('');
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
-        // 5. РЕНДЕР СПОРТА
-        function renderSports() {
-            const list = document.getElementById('sports-list');
-            const defaultS = [{name:"Батал Гаджия", sport:"Борьба"}, {name:"Арсен Логуа", sport:"Бокс"}];
-            const sportsData = JSON.parse(localStorage.getItem('tk_sports') || JSON.stringify(defaultS));
-            list.innerHTML = sportsData.map(s => `
-                <div class="bg-white p-7 rounded-[45px] shadow-sm border border-gray-100 flex items-center gap-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-50 to-white rounded-3xl flex items-center justify-center text-4xl shadow-inner border-2 border-indigo-100">🏅</div>
-                    <div>
-                        <h3 class="font-black text-gray-800 text-xl leading-none mb-2 italic uppercase tracking-tighter">${s.name}</h3>
-                        <p class="text-indigo-500 text-[11px] font-black uppercase tracking-[0.2em]">${s.sport}</p>
-                    </div>
-                </div>
-            `).join('');
-        }
+        // 1. ФУНКЦИЯ ЛАЙКА
+        window.addLike = async (id, folder) => {
+            const postRef = doc(db, folder, id);
+            await updateDoc(postRef, { likes: increment(1) });
+        };
 
-        // 6. АДМИНКА (ЛОГИКА СОХРАНЕНИЯ)
-        function saveAdminNews() {
-            const txt = document.getElementById('news-edit').value.trim();
-            if(txt) {
-                let list = JSON.parse(localStorage.getItem('tk_news_list') || '[]');
-                list.push({ text: txt, date: new Date().toLocaleDateString('ru-RU'), id: Date.now() });
-                localStorage.setItem('tk_news_list', JSON.stringify(list));
-                document.getElementById('news-edit').value = '';
-                renderNews(); closeAdmin(); showPage('feed');
-            }
-        }
-        function addTourismPhoto() {
-            const url = document.getElementById('t-url').value.trim();
-            const title = document.getElementById('t-title').value.trim();
-            if(url && title) {
-                let list = JSON.parse(localStorage.getItem('tk_tourism') || '[]');
-                list.push({url, title});
-                localStorage.setItem('tk_tourism', JSON.stringify(list));
-                document.getElementById('t-url').value = ''; document.getElementById('t-title').value = '';
-                renderTourism(); closeAdmin(); showPage('tourism');
-            }
-        }
-        function addSportsman() {
-            const name = document.getElementById('s-name').value.trim();
-            const sport = document.getElementById('s-sport').value.trim();
-            if(name && sport) {
-                let list = JSON.parse(localStorage.getItem('tk_sports') || '[]');
-                list.push({name, sport});
-                localStorage.setItem('tk_sports', JSON.stringify(list));
-                document.getElementById('s-name').value = ''; document.getElementById('s-sport').value = '';
-                renderSports(); closeAdmin(); showPage('sports');
-            }
-        }
-
-        // 7. МОДАЛКИ (ТАКСИ / ТРАНСПОРТ / ИДЕИ)
-        function openModal(type) {
-            const body = document.getElementById('modal-body');
-            if(type === 'taxi') {
-                document.getElementById('modal-title').innerText = 'ВЫЗОВ ТАКСИ 🚕';
-                body.innerHTML = `
-                    <div class="space-y-4">
-                        <a href="tel:+79407260260" class="flex justify-between items-center p-7 bg-yellow-50 rounded-[35px] border border-yellow-200 active:scale-95 transition shadow-sm">
-                            <span class="font-black text-yellow-900 text-xl tracking-tighter uppercase">+7 940 726-02-60</span>
-                            <span class="text-3xl">📞</span>
-                        </a>
-                        <a href="tel:+79409260260" class="flex justify-between items-center p-7 bg-yellow-50 rounded-[35px] border border-yellow-200 active:scale-95 transition shadow-sm">
-                            <span class="font-black text-yellow-900 text-xl tracking-tighter uppercase">+7 940 926-02-60</span>
-                            <span class="text-3xl">📞</span>
-                        </a>
-                    </div>`;
-            }
-            if(type === 'transport') {
-                document.getElementById('modal-title').innerText = 'РЕЙСЫ 🚌';
-                body.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="p-7 bg-blue-50 rounded-[35px] border border-blue-100">
-                            <b class="text-blue-900 block text-lg uppercase font-black tracking-tight italic">Сухум — 300 ₽</b>
-                            <p class="text-xs text-blue-600 font-bold mt-2">08:00, 09:30, 11:30, 14:00, 16:30</p>
+        // 2. ПОДГРУЗКА КАРТОЧЕК
+        window.switchTab = (folder) => {
+            onSnapshot(query(collection(db, folder), orderBy("createdAt", "desc")), (snap) => {
+                const feed = document.getElementById('content-feed');
+                feed.innerHTML = '';
+                snap.forEach(res => {
+                    const data = res.data();
+                    const id = res.id;
+                    feed.innerHTML += `
+                        <div class="card shadow-lg">
+                            <img src="${data.image}" class="w-full h-64 object-cover">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="text-xl font-black uppercase italic text-gray-800 tracking-tighter">${data.title}</h3>
+                                    <button onclick="addLike('${id}', '${folder}')" class="like-btn flex items-center gap-2 bg-red-50 px-4 py-2 rounded-2xl">
+                                        <i class="fa-solid fa-heart text-red-500"></i>
+                                        <span class="font-bold text-red-600">${data.likes || 0}</span>
+                                    </button>
+                                </div>
+                                <p class="text-gray-500 text-sm leading-relaxed mb-6">${data.desc || ''}</p>
+                                ${data.phone ? `<a href="tel:${data.phone}" class="block w-full bg-indigo-600 text-white text-center py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-100">Связаться с гидом</a>` : ''}
+                            </div>
                         </div>
-                        <div class="p-7 bg-indigo-50 rounded-[35px] border border-indigo-100">
-                            <b class="text-indigo-900 block text-lg uppercase font-black tracking-tight italic">Псоу — 650 ₽</b>
-                            <p class="text-xs text-indigo-600 font-bold mt-2">ЕЖЕДНЕВНО В 07:15</p>
-                        </div>
-                    </div>`;
+                    `;
+                });
+            });
+        };
+
+        // 3. АДМИНКА И ЗАГРУЗКА
+        window.openAdmin = () => { if(prompt("Пароль доступа:") === "777") document.getElementById('admin-modal').style.display = 'block'; };
+        window.closeAdmin = () => document.getElementById('admin-modal').style.display = 'none';
+
+        window.saveToFirebase = async () => {
+            const file = document.getElementById('post-file').files[0];
+            const title = document.getElementById('post-title').value;
+            const folder = document.getElementById('post-type').value;
+            const btn = document.getElementById('upload-btn');
+
+            if(!file || !title) return alert("Заполни всё!");
+            btn.disabled = true; btn.innerText = "ПУБЛИКУЕМ...";
+
+            const fileRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
+            await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(fileRef);
+
+            await addDoc(collection(db, folder), {
+                title: title.toUpperCase(),
+                desc: document.getElementById('post-desc').value,
+                phone: document.getElementById('post-phone').value,
+                image: url,
+                likes: 0,
+                createdAt: serverTimestamp()
+            });
+
+            alert("Готово!"); closeAdmin();
+        };
+
+        window.sendIdea = async () => {
+            const text = prompt("Твоя идея для города:");
+            if(text) await addDoc(collection(db, "city_ideas"), { text, date: serverTimestamp() });
+        };
+
+        window.showSection = (mode) => {
+            document.getElementById('add-form').classList.toggle('hidden', mode === 'ideas');
+            document.getElementById('ideas-list').classList.toggle('hidden', mode === 'add');
+            if(mode === 'ideas') {
+                onSnapshot(query(collection(db, "city_ideas"), orderBy("date", "desc")), (snap) => {
+                    const list = document.getElementById('ideas-list');
+                    list.innerHTML = '';
+                    snap.forEach(d => list.innerHTML += `<div class="bg-white/10 p-4 rounded-2xl text-xs border border-white/5 italic">"${d.data().text}"</div>`);
+                });
             }
-            if(type === 'ideas') {
-                document.getElementById('modal-title').innerText = 'ТВОЯ ИДЕЯ 💡';
-                body.innerHTML = `
-                    <textarea id="idea-text" class="w-full p-7 bg-gray-50 rounded-[40px] border-none outline-none font-bold text-sm text-gray-700 mb-4" rows="4" placeholder="Что нужно Ткуарчалу?"></textarea>
-                    <button onclick="alert('Идея отправлена! Спасибо за участие.');closeModal()" class="w-full bg-indigo-600 text-white p-6 rounded-[30px] font-black uppercase text-xs tracking-[0.2em] active:scale-95 transition shadow-lg">ОТПРАВИТЬ ИДЕЮ</button>`;
-            }
-            document.getElementById('modal-overlay').classList.remove('hidden');
-            setTimeout(() => document.getElementById('modal-box').classList.add('modal-show'), 10);
-        }
+        };
 
-        function closeModal() {
-            document.getElementById('modal-box').classList.remove('modal-show');
-            setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 300);
-        }
-
-        // 8. ЛОГИКА ПРОФИЛЯ
-        function login() {
-            const name = document.getElementById('name-in').value.trim();
-            if(name) { localStorage.setItem('tk_user', name); initApp(); showPage('home'); }
-        }
-        function logout() { localStorage.clear(); location.reload(); }
-        function openAdmin() { document.getElementById('admin-modal').classList.remove('hidden'); }
-        function closeAdmin() { document.getElementById('admin-modal').classList.add('hidden'); }
-
-        function initApp() {
-            const user = localStorage.getItem('tk_user');
-            renderNews(); renderSports(); renderTourism();
-            if(user) {
-                document.getElementById('login-box').classList.add('hidden');
-                document.getElementById('user-box').classList.remove('hidden');
-                document.getElementById('u-name').innerText = user;
-                document.getElementById('header-user').innerText = user;
-                if(user.toLowerCase() === 'admin') document.getElementById('admin-btn').classList.remove('hidden');
-            }
-        }
-
-        // ЗАПУСК ПРИ ЗАГРУЗКЕ
-        window.onload = () => { initApp(); loadWeather(); };
+        switchTab('tourism'); // Запуск по умолчанию
     </script>
 </body>
 </html>
