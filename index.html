@@ -3,35 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City App Admin</title>
+    <title>City Admin App</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8f9ff; margin: 0; padding-bottom: 90px; }
-        
-        /* Шапка */
-        .header { background: linear-gradient(135deg, #4b39ef 0%, #39d2c0 100%); padding: 30px 20px 50px; border-bottom-radius: 40px; color: white; border-radius: 0 0 40px 40px; }
-        .header h1 { margin: 0; font-size: 24px; text-transform: lowercase; }
-        .header p { margin: 0; font-size: 10px; opacity: 0.8; letter-spacing: 1px; }
+        :root {
+            --primary: linear-gradient(135deg, #4b39ef 0%, #39d2c0 100%);
+            --bg: #f8f9ff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
 
-        /* ЛЕНТА СТОРИС (КАК В ИНСТЕ) */
-        .stories-container { display: flex; overflow-x: auto; padding: 20px; gap: 15px; scrollbar-width: none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: #333; overflow-x: hidden; }
+
+        /* ШАПКА */
+        .header { background: var(--primary); padding: 40px 20px 60px; border-radius: 0 0 40px 40px; color: white; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 900; text-transform: lowercase; }
+        .header p { margin: 5px 0 0; font-size: 11px; opacity: 0.8; letter-spacing: 1.5px; font-weight: 700; }
+
+        /* СТОРИС (ИНСТА-СТИЛЬ) */
+        .stories-container { display: flex; overflow-x: auto; padding: 20px; gap: 15px; scrollbar-width: none; margin-top: -10px; }
         .stories-container::-webkit-scrollbar { display: none; }
-        .story { min-width: 70px; text-align: center; cursor: pointer; }
-        .story-ring { width: 66px; height: 66px; border-radius: 50%; background: linear-gradient(#fff, #fff) padding-box, linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) border-box; border: 3px solid transparent; display: flex; align-items: center; justify-content: center; }
-        .story img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
-        .story span { font-size: 10px; color: #333; margin-top: 5px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .story { min-width: 75px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .story:active { transform: scale(0.9); }
+        .story-ring { 
+            width: 70px; height: 70px; border-radius: 50%; 
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #bc1888); 
+            padding: 3px; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px;
+        }
+        .story img { width: 64px; height: 64px; border-radius: 50%; background: white; object-fit: cover; padding: 2px; }
+        .story span { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #555; }
 
-        /* Погода */
-        .weather { background: white; margin: 0 20px 20px; padding: 20px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.03); }
-        .weather-info div { font-size: 32px; font-weight: 800; }
+        /* ПОГОДА */
+        .weather { background: white; margin: 0 20px 20px; padding: 20px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+        .weather-info small { color: #aaa; font-weight: 700; font-size: 10px; letter-spacing: 0.5px; }
+        .weather-info div { font-size: 34px; font-weight: 900; margin-top: 5px; }
 
-        /* Кнопки */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
-        .card { background: white; border-radius: 35px; padding: 25px 10px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.03); }
-        .card img { width: 45px; height: 45px; margin-bottom: 12px; }
-        .card span { font-weight: 800; font-size: 13px; color: #333; }
+        /* СЕТКА КНОПОК */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
+        .card { 
+            background: white; border-radius: 35px; padding: 30px 15px; 
+            display: flex; flex-direction: column; align-items: center; 
+            box-shadow: var(--shadow); transition: 0.2s; cursor: pointer;
+        }
+        .card:active { transform: scale(0.95); background: #f0f4ff; }
+        .card img { width: 52px; height: 52px; margin-bottom: 15px; }
+        .card span { font-weight: 900; font-size: 13px; letter-spacing: 0.5px; }
 
-        /* Нижнее меню */
-        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-radius: 25px 25px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+        /* ИДЕЯ */
+        .idea-btn { 
+            background: #f0f3ff; margin: 30px 20px; padding: 18px; border-radius: 25px; 
+            text-align: center; color: #4b39ef; font-weight: 800; font-size: 14px; 
+            box-shadow: 0 5px 15px rgba(75, 57, 239, 0.1); cursor: pointer;
+        }
+
+        /* НИЖНЕЕ МЕНЮ */
+        .nav { 
+            position: fixed; bottom: 0; width: 100%; background: white; 
+            display: flex; justify-content: space-around; padding: 15px 0 25px; 
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.05); border-radius: 30px 30px 0 0;
+        }
+        .nav img { width: 26px; height: 26px; opacity: 0.4; }
+        .nav img.active { opacity: 1; filter: none; }
     </style>
 </head>
 <body>
@@ -41,68 +72,95 @@
         <p>ГОРОД В ТВОЕМ КАРМАНЕ</p>
     </div>
 
-    <!-- СЮДА БУДУТ ПОДГРУЖАТЬСЯ СТОРИС -->
+    <!-- ЛЕНТА СТОРИС -->
     <div class="stories-container" id="stories-list">
-        <!-- Пример одной сторис (потом удалится само) -->
-        <div class="story">
-            <div class="story-ring"><img src="https://via.placeholder.com"></div>
-            <span>загрузка...</span>
-        </div>
+        <!-- Сюда подгрузятся истории из Google Таблицы -->
     </div>
 
     <div class="weather">
         <div class="weather-info">
-            <small style="color:#aaa">ПОГОДА ТКУАРЧАЛ</small>
-            <div>24°C</div>
+            <small>ПОГОДА ТКУАРЧАЛ</small>
+            <div id="temp">24°C</div>
         </div>
-        <img src="https://img.icons8.com" width="50">
+        <img src="https://img.icons8.com" width="55">
     </div>
 
-    <div class="grid">
-        <div class="card" id="tourism"><img src="https://img.icons8.com"><span>ТУРИЗМ</span></div>
-        <div class="card" id="taxi"><img src="https://img.icons8.com"><span>ТАКСИ</span></div>
-        <div class="card" id="flights"><img src="https://img.icons8.com"><span>РЕЙСЫ</span></div>
-        <div class="card" id="sport"><img src="https://img.icons8.com"><span>СПОРТ</span></div>
+    <div class="menu-grid">
+        <div class="card" id="tourism">
+            <img src="https://img.icons8.com">
+            <span>ТУРИЗМ</span>
+        </div>
+        <div class="card" id="taxi">
+            <img src="https://img.icons8.com">
+            <span>ТАКСИ</span>
+        </div>
+        <div class="card" id="flights">
+            <img src="https://img.icons8.com">
+            <span>РЕЙСЫ</span>
+        </div>
+        <div class="card" id="sport">
+            <img src="https://img.icons8.com">
+            <span>СПОРТ</span>
+        </div>
+    </div>
+
+    <div class="idea-btn" onclick="sendIdea()">
+        💡 ЕСТЬ ИДЕЯ ДЛЯ ГОРОДА?
     </div>
 
     <div class="nav">
-        <img src="https://img.icons8.com" width="26">
-        <img src="https://img.icons8.com" width="26">
-        <img src="https://img.icons8.com" width="26">
-        <img src="https://img.icons8.com" width="26">
+        <img src="https://img.icons8.com" class="active">
+        <img src="https://img.icons8.com">
+        <img src="https://img.icons8.com">
+        <img src="https://img.icons8.com">
     </div>
 
     <script>
+        // ТВОЙ ID ТАБЛИЦЫ (ВСТАВЬ ЕГО СЮДА)
         const SHEET_ID = 'ВСТАВЬ_СЮДА_ID_ТАБЛИЦЫ'; 
 
-        async function initApp() {
+        async function loadAppData() {
             try {
-                // Загружаем кнопки (Лист1)
+                // 1. Загружаем Кнопки (Лист1)
                 const resBtn = await fetch(`https://opensheet.elk.sh{SHEET_ID}/Лист1`);
                 const buttons = await resBtn.json();
                 buttons.forEach(row => {
                     const card = document.getElementById(row.id);
                     if (card) {
-                        if(row.title) card.querySelector('span').innerText = row.title;
-                        if(row.icon) card.querySelector('img').src = row.icon;
+                        if (row.title) card.querySelector('span').innerText = row.title;
+                        if (row.icon) card.querySelector('img').src = row.icon;
                     }
                 });
 
-                // Загружаем СТОРИС (Stories)
+                // 2. Загружаем СТОРИС (Лист "Stories")
                 const resStories = await fetch(`https://opensheet.elk.sh{SHEET_ID}/Stories`);
                 const stories = await resStories.json();
                 const list = document.getElementById('stories-list');
-                list.innerHTML = ''; // очистка
+                list.innerHTML = ''; 
                 stories.forEach(s => {
                     list.innerHTML += `
-                        <div class="story" onclick="window.open('${s.link}')">
+                        <div class="story" onclick="window.open('${s.link}', '_blank')">
                             <div class="story-ring"><img src="${s.image}"></div>
                             <span>${s.title}</span>
                         </div>`;
                 });
-            } catch (e) { console.log("Обновление..."); }
+            } catch (e) {
+                console.log("Ожидание данных из таблицы...");
+            }
         }
-        initApp();
+
+        function sendIdea() {
+            const idea = prompt("Опишите вашу идею для города:");
+            if (idea) {
+                let myIdeas = JSON.parse(localStorage.getItem('my_ideas')) || [];
+                myIdeas.push(idea);
+                localStorage.setItem('my_ideas', JSON.stringify(myIdeas));
+                alert("Идея сохранена в памяти вашего телефона!");
+            }
+        }
+
+        // Запуск при загрузке
+        window.onload = loadAppData;
     </script>
 </body>
 </html>
